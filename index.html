@@ -238,12 +238,12 @@
         </div>
         
         <div class="main-content">
-            <!-- UN List Upload -->
+            <!-- Reference Data Upload -->
             <div class="card">
-                <div class="card-title">📋 Upload UN_List Reference Data</div>
-                <div class="warning">⚠️ Please upload your UN_List.xlsx file for real processing</div>
+                <div class="card-title">📋 Upload Reference Data</div>
+                <div class="warning">⚠️ Please upload your reference data file (e.g., UN_List.xlsx)</div>
                 <div class="file-upload">
-                    <div class="file-label" id="unListLabel">No UN_List file selected</div>
+                    <div class="file-label" id="unListLabel">No reference file selected</div>
                     <button class="browse-btn" onclick="selectUNList()">Browse</button>
                 </div>
                 <input type="file" id="unListInput" style="display: none;" accept=".xlsx,.xls,.csv">
@@ -306,7 +306,7 @@
             const file = e.target.files[0];
             if (file) {
                 document.getElementById('unListLabel').textContent = file.name;
-                readExcelFile(file, 'unList');
+                readExcelFile(file, 'reference');
             }
         });
         
@@ -333,9 +333,9 @@
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet);
                     
-                    if (type === 'unList') {
+                    if (type === 'reference') {
                         unListData = jsonData;
-                        document.getElementById('unListStatus').textContent = `✅ UN_List loaded: ${jsonData.length} records`;
+                        document.getElementById('unListStatus').textContent = `✅ Reference data loaded: ${jsonData.length} records`;
                         checkReadyState();
                     } else {
                         fileData = jsonData;
@@ -483,7 +483,7 @@
             const onlyInFile = [];
             
             // Find name columns (try common column names)
-            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'unList');
+            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
             const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
             
             if (!unNameCol || !fileNameCol) {
@@ -594,8 +594,8 @@
         
         // Find name column
         function findNameColumn(columns, fileType) {
-            if (fileType === 'unList') {
-                // Look for "FullName" in UN_List
+            if (fileType === 'reference') {
+                // Look for "FullName" in reference data
                 for (const col of columns) {
                     if (col.toLowerCase() === 'fullname' || col.toLowerCase() === 'full_name') {
                         return col;
