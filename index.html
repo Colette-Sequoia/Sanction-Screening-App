@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanction Screening App</title>
+    <title>Sanction Screening App - Real Processing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -220,20 +221,35 @@
             font-size: 12px;
             white-space: pre-wrap;
         }
+        
+        .warning {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
             <div class="logo">LOGO</div>
-            <div class="app-title">🔍 Sanction Screening</div>
+            <div class="app-title">🔍 Sanction Screening - Real Processing</div>
         </div>
         
         <div class="main-content">
-            <!-- UN List Status -->
+            <!-- UN List Upload -->
             <div class="card">
-                <div class="card-title">📋 Reference Data (UN_List)</div>
-                <div class="file-label">✅ UN_List loaded: 708 records</div>
+                <div class="card-title">📋 Upload UN_List Reference Data</div>
+                <div class="warning">⚠️ Please upload your UN_List.xlsx file for real processing</div>
+                <div class="file-upload">
+                    <div class="file-label" id="unListLabel">No UN_List file selected</div>
+                    <button class="browse-btn" onclick="selectUNList()">Browse</button>
+                </div>
+                <input type="file" id="unListInput" style="display: none;" accept=".xlsx,.xls,.csv">
+                <div id="unListStatus" style="margin-top: 10px; font-size: 12px;"></div>
             </div>
             
             <!-- File Upload -->
@@ -279,8 +295,24 @@
     </div>
 
     <script>
-        let selectedFile = null;
+        let unListData = null;
+        let fileData = null;
+        let processingResults = null;
         
+        // UN List selection
+        function selectUNList() {
+            document.getElementById('unListInput').click();
+        }
+        
+        document.getElementById('unListInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('unListLabel').textContent = file.name;
+                readExcelFile(file, 'unList');
+            }
+        });
+        
+        // File selection
         function selectFile() {
             document.getElementById('fileInput').click();
         }
@@ -288,12 +320,47 @@
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                selectedFile = file;
                 document.getElementById('fileLabel').textContent = file.name;
-                document.getElementById('compareBtn').disabled = false;
+                readExcelFile(file, 'file');
             }
         });
         
+        // Read Excel file
+        function readExcelFile(file, type) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (type === 'unList') {
+                        unListData = jsonData;
+                        document.getElementById('unListStatus').textContent = `✅ UN_List loaded: ${jsonData.length} records`;
+                        checkReadyState();
+                    } else {
+                        fileData = jsonData;
+                        checkReadyState();
+                    }
+                } catch (error) {
+                    console.error('Error reading file:', error);
+                    alert('Error reading file. Please ensure it\'s a valid Excel file.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Check if ready to process
+        function checkReadyState() {
+            const compareBtn = document.getElementById('compareBtn');
+            if (unListData && fileData) {
+                compareBtn.disabled = false;
+                document.getElementById('statusText').textContent = 'Ready to process files';
+            }
+        }
+        
+        // Threshold slider
         const thresholdSlider = document.getElementById('thresholdSlider');
         const thresholdValue = document.getElementById('thresholdValue');
         
@@ -301,9 +368,75 @@
             thresholdValue.textContent = this.value + '%';
         });
         
+        // Normalize name function (JavaScript version of Python logic)
+        function normalizeName(name) {
+            if (!name) return "";
+            
+            let nameStr = String(name).trim().toLowerCase();
+            
+            // Remove common titles
+            const titles = ['mr', 'mrs', 'ms', 'dr', 'prof', 'sir', 'madam', 'miss', 'mx'];
+            const words = nameStr.split(' ');
+            const filteredWords = words.filter(word => !titles.includes(word));
+            nameStr = filteredWords.join(' ');
+            
+            // Remove special characters and normalize whitespace
+            nameStr = nameStr.replace(/[^\w\s]/g, '');
+            nameStr = nameStr.replace(/\s+/g, ' ').trim();
+            
+            return nameStr;
+        }
+        
+        // Calculate similarity (simplified fuzzy matching)
+        function calculateSimilarity(name1, name2) {
+            const norm1 = normalizeName(name1);
+            const norm2 = normalizeName(name2);
+            
+            if (!norm1 || !norm2) return 0;
+            
+            // Simple Levenshtein distance approximation
+            const longer = norm1.length > norm2.length ? norm1 : norm2;
+            const shorter = norm1.length > norm2.length ? norm2 : norm1;
+            
+            if (longer.length === 0) return 1.0;
+            
+            const distance = levenshteinDistance(longer, shorter);
+            return ((longer.length - distance) / longer.length) * 100;
+        }
+        
+        // Levenshtein distance
+        function levenshteinDistance(str1, str2) {
+            const matrix = [];
+            
+            for (let i = 0; i <= str2.length; i++) {
+                matrix[i] = [i];
+            }
+            
+            for (let j = 0; j <= str1.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            for (let i = 1; i <= str2.length; i++) {
+                for (let j = 1; j <= str1.length; j++) {
+                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            
+            return matrix[str2.length][str1.length];
+        }
+        
+        // Process files
         function processFiles() {
-            if (!selectedFile) {
-                alert('Please select a file first');
+            if (!unListData || !fileData) {
+                alert('Please upload both UN_List and file to match');
                 return;
             }
             
@@ -318,72 +451,196 @@
             statusText.textContent = 'Processing files...';
             resultsArea.textContent = '';
             
+            // Simulate progress
             let progress = 0;
             const progressInterval = setInterval(() => {
-                progress += 10;
+                progress += 5;
                 progressFill.style.width = progress + '%';
                 
                 if (progress >= 100) {
                     clearInterval(progressInterval);
                     
-                    const mockResults = `🎯 High Matches (≥80%): 15
-🔍 Partial Matches (<80%): 8
-📋 Only in UN_List: 693
-📋 Only in Your File: 85
-
-============================================================
-✅ Processing completed successfully!
-
-🤝 HIGH CONFIDENCE MATCHES:
---------------------------------------------------
-1. John Smith ↔ John Smith (Score: 100%)
-2. Mary Johnson ↔ Mary Johnson (Score: 95%)
-3. Robert Williams ↔ Robert Williams (Score: 92%)
-4. Jennifer Brown ↔ Jennifer Brown (Score: 90%)
-5. Michael Davis ↔ Michael Davis (Score: 88%)
-6. Linda Miller ↔ Linda Miller (Score: 87%)
-7. James Wilson ↔ James Wilson (Score: 85%)
-8. Patricia Moore ↔ Patricia Moore (Score: 83%)
-9. David Taylor ↔ David Taylor (Score: 82%)
-10. Barbara Anderson ↔ Barbara Anderson (Score: 81%)
-11. Richard Thomas ↔ Richard Thomas (Score: 80%)
-12. Elizabeth Jackson ↔ Elizabeth Jackson (Score: 80%)
-13. Joseph White ↔ Joseph White (Score: 80%)
-14. Susan Harris ↔ Susan Harris (Score: 80%)
-15. Charles Martin ↔ Charles Martin (Score: 80%)
-
-🔍 PARTIAL MATCHES (Below 80% threshold):
---------------------------------------------------
-1. Johnathan Smith ↔ John Smith (Score: 75%)
-2. Mary Ann Johnson ↔ Mary Johnson (Score: 72%)
-3. Rob Williams ↔ Robert Williams (Score: 70%)
-4. Jenny Brown ↔ Jennifer Brown (Score: 68%)
-5. Mike Davis ↔ Michael Davis (Score: 65%)
-6. Linda Miller ↔ L. Miller (Score: 63%)
-7. Jim Wilson ↔ James Wilson (Score: 60%)
-8. Pat Moore ↔ Patricia Moore (Score: 58%)
-
-============================================================`;
+                    // Perform real matching
+                    const results = performRealMatching();
+                    resultsArea.textContent = results.text;
+                    processingResults = results.data;
                     
-                    resultsArea.textContent = mockResults;
                     downloadBtn.disabled = false;
-                    statusText.textContent = 'Completed - 15 high matches, 8 partial matches';
+                    statusText.textContent = `Completed - ${results.data.highMatches.length} high matches, ${results.data.partialMatches.length} partial matches`;
                     
                     setTimeout(() => {
                         progressFill.style.width = '0%';
                         compareBtn.disabled = false;
                     }, 1000);
                 }
-            }, 200);
+            }, 100);
         }
         
+        // Perform real matching
+        function performRealMatching() {
+            const threshold = parseInt(thresholdSlider.value);
+            const highMatches = [];
+            const partialMatches = [];
+            const onlyInUNList = [];
+            const onlyInFile = [];
+            
+            // Find name columns (try common column names)
+            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}));
+            const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}));
+            
+            if (!unNameCol || !fileNameCol) {
+                return {
+                    text: '❌ Error: Could not find name columns in the uploaded files. Please ensure your files have name columns.',
+                    data: { highMatches: [], partialMatches: [], onlyInUNList: [], onlyInFile: [] }
+                };
+            }
+            
+            // Perform matching
+            const unNames = new Set();
+            const fileNames = new Set();
+            
+            // Collect all names
+            unListData.forEach(row => {
+                const name = String(row[unNameCol] || '').trim();
+                if (name) {
+                    unNames.add(name.toLowerCase());
+                }
+            });
+            
+            fileData.forEach(row => {
+                const name = String(row[fileNameCol] || '').trim();
+                if (name) {
+                    fileNames.add(name.toLowerCase());
+                }
+            });
+            
+            // Find matches
+            fileData.forEach(fileRow => {
+                const fileName = String(fileRow[fileNameCol] || '').trim();
+                if (!fileName) return;
+                
+                let bestMatch = null;
+                let bestScore = 0;
+                
+                unListData.forEach(unRow => {
+                    const unName = String(unRow[unNameCol] || '').trim();
+                    if (!unName) return;
+                    
+                    const score = calculateSimilarity(fileName, unName);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMatch = { unName, score, unRow };
+                    }
+                });
+                
+                if (bestMatch) {
+                    if (bestScore >= threshold) {
+                        highMatches.push({
+                            fileName,
+                            unName: bestMatch.unName,
+                            score: bestScore.toFixed(1),
+                            fileRow,
+                            unRow: bestMatch.unRow
+                        });
+                    } else if (bestScore >= 50) {
+                        partialMatches.push({
+                            fileName,
+                            unName: bestMatch.unName,
+                            score: bestScore.toFixed(1),
+                            fileRow,
+                            unRow: bestMatch.unRow
+                        });
+                    }
+                }
+            });
+            
+            // Generate results text
+            let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
+            resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\n`;
+            resultsText += `📋 Total UN_List records: ${unListData.length}\n`;
+            resultsText += `📋 Total file records: ${fileData.length}\n\n`;
+            resultsText += `============================================================\n`;
+            resultsText += `✅ Processing completed successfully!\n\n`;
+            
+            if (highMatches.length > 0) {
+                resultsText += `🤝 HIGH CONFIDENCE MATCHES:\n`;
+                resultsText += `--------------------------------------------------\n`;
+                highMatches.slice(0, 15).forEach((match, index) => {
+                    resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\n`;
+                });
+                if (highMatches.length > 15) {
+                    resultsText += `... and ${highMatches.length - 15} more high matches\n`;
+                }
+                resultsText += `\n`;
+            }
+            
+            if (partialMatches.length > 0) {
+                resultsText += `🔍 PARTIAL MATCHES (Below ${threshold}% threshold):\n`;
+                resultsText += `--------------------------------------------------\n`;
+                partialMatches.slice(0, 8).forEach((match, index) => {
+                    resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\n`;
+                });
+                if (partialMatches.length > 8) {
+                    resultsText += `... and ${partialMatches.length - 8} more partial matches\n`;
+                }
+                resultsText += `\n`;
+            }
+            
+            resultsText += `============================================================`;
+            
+            return {
+                text: resultsText,
+                data: { highMatches, partialMatches, onlyInUNList, onlyInFile }
+            };
+        }
+        
+        // Find name column
+        function findNameColumn(columns) {
+            const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'client', 'customer', 'individual'];
+            
+            for (const keyword of nameKeywords) {
+                for (const col of columns) {
+                    if (col.toLowerCase().includes(keyword)) {
+                        return col;
+                    }
+                }
+            }
+            
+            // If no name column found, try first string column
+            for (const col of columns) {
+                if (col.toLowerCase().includes('text') || col.toLowerCase().includes('string')) {
+                    return col;
+                }
+            }
+            
+            // Return first column as fallback
+            return columns[0];
+        }
+        
+        // Download results
         function downloadResults() {
-            const results = document.getElementById('resultsArea').textContent;
-            const blob = new Blob([results], { type: 'text/plain' });
+            if (!processingResults) {
+                alert('No results to download');
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = "Type,File Name,UN List Name,Score (%)\n";
+            
+            processingResults.highMatches.forEach(match => {
+                csvContent += `High Match,"${match.fileName}","${match.unName}",${match.score}\n`;
+            });
+            
+            processingResults.partialMatches.forEach(match => {
+                csvContent += `Partial Match,"${match.fileName}","${match.unName}",${match.score}\n`;
+            });
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.txt';
+            a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.csv';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
