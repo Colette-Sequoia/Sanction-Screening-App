@@ -14,7 +14,7 @@
         
         body {
             font-family: Arial, sans-serif;
-            background: #05263B;
+            background: #444647;
             color: white;
             padding: 20px;
         }
@@ -485,12 +485,12 @@
             const onlyInFile = [];
             
             // Find name columns (try common column names)
-            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}));
-            const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}));
+            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'unList');
+            const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
             
             if (!unNameCol || !fileNameCol) {
                 return {
-                    text: '❌ Error: Could not find name columns in the uploaded files. Please ensure your files have name columns.',
+                    text: '❌ Error: Could not find name columns in uploaded files. Please ensure your files have name columns.',
                     data: { highMatches: [], partialMatches: [], onlyInUNList: [], onlyInFile: [] }
                 };
             }
@@ -595,21 +595,43 @@
         }
         
         // Find name column
-        function findNameColumn(columns) {
-            const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'client', 'customer', 'individual'];
-            
-            for (const keyword of nameKeywords) {
+        function findNameColumn(columns, fileType) {
+            if (fileType === 'unList') {
+                // Look for "FullName" in UN_List
                 for (const col of columns) {
-                    if (col.toLowerCase().includes(keyword)) {
+                    if (col.toLowerCase() === 'fullname' || col.toLowerCase() === 'full_name') {
                         return col;
                     }
                 }
-            }
-            
-            // If no name column found, try first string column
-            for (const col of columns) {
-                if (col.toLowerCase().includes('text') || col.toLowerCase().includes('string')) {
-                    return col;
+                // Fallback to common name columns
+                const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'individual'];
+                for (const keyword of nameKeywords) {
+                    for (const col of columns) {
+                        if (col.toLowerCase().includes(keyword)) {
+                            return col;
+                        }
+                    }
+                }
+            } else {
+                // Look for "Client Name" and "Surname" in file to match
+                for (const col of columns) {
+                    if (col.toLowerCase() === 'client name' || col.toLowerCase() === 'client_name') {
+                        return col;
+                    }
+                }
+                for (const col of columns) {
+                    if (col.toLowerCase() === 'surname') {
+                        return col;
+                    }
+                }
+                // Fallback to common name columns
+                const nameKeywords = ['client name', 'surname', 'name', 'full_name', 'fullname', 'person', 'customer'];
+                for (const keyword of nameKeywords) {
+                    for (const col of columns) {
+                        if (col.toLowerCase().includes(keyword)) {
+                            return col;
+                        }
+                    }
                 }
             }
             
