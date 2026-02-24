@@ -516,32 +516,29 @@
             statusText.textContent = 'Processing files...';
             resultsArea.textContent = '';
             
-            // Use setTimeout for non-blocking processing
-            setTimeout(() => {
-                const results = performRealMatching();
-                
-                // Update UI with results
-                resultsArea.textContent = results.text;
-                processingResults = results.data;
-                downloadBtn.disabled = false;
-                statusText.textContent = `Completed - ${results.data.highMatches.length} high matches, ${results.data.partialMatches.length} partial matches`;
-                
-                setTimeout(() => {
-                    progressFill.style.width = '0%';
-                    compareBtn.disabled = false;
-                }, 1000);
-            }, 100);
-            
             // Simulate progress
             let progress = 0;
             const progressInterval = setInterval(() => {
-                progress += 10;
+                progress += 5;
+                progressFill.style.width = progress + '%';
+                
                 if (progress >= 100) {
                     clearInterval(progressInterval);
+                    
+                    // Perform real matching
+                    const results = performRealMatching();
+                    resultsArea.textContent = results.text;
+                    processingResults = results.data;
+                    
+                    downloadBtn.disabled = false;
+                    statusText.textContent = `Completed - ${results.data.highMatches.length} high matches, ${results.data.partialMatches.length} partial matches`;
+                    
+                    setTimeout(() => {
+                        progressFill.style.width = '0%';
+                        compareBtn.disabled = false;
+                    }, 1000);
                 }
-                progressFill.style.width = progress + '%';
-                statusText.textContent = `Processing files... ${progress}%`;
-            }, 200);
+            }, 100);
         }
         
         // Perform real matching
@@ -563,16 +560,27 @@
                 };
             }
             
-            // Perform matching with deduplication (like Python desktop app)
+            // Optimized matching with pre-computed normalized names and early exits
             const matchedUNIndices = new Set();
             const matchedFileIndices = new Set();
             
-            // Match each file name against UN list
+            // Pre-normalize all names for faster comparison (optimization 1)
+            const normalizedUNNames = unListData.map(row => 
+                normalizeName(String(row[unNameCol] || '').trim())
+            );
+            const normalizedFileNames = fileData.map(row => 
+                normalizeName(String(row[fileNameCol] || '').trim())
+            );
+            
+            // Match each file name against UN list with optimizations
             fileData.forEach((fileRow, fileIndex) => {
                 if (matchedFileIndices.has(fileIndex)) return;
                 
                 const fileName = String(fileRow[fileNameCol] || '').trim();
                 if (!fileName) return;
+                
+                const normalizedFileName = normalizedFileNames[fileIndex];
+                if (!normalizedFileName) return;
                 
                 let bestMatch = null;
                 let bestScore = 0;
@@ -585,7 +593,14 @@
                     const unName = String(unRow[unNameCol] || '').trim();
                     if (!unName) return;
                     
-                    const score = calculateSimilarity(fileName, unName);
+                    // Optimization 2: Quick length check for early exit
+                    const lenDiff = Math.abs(normalizedFileName.length - normalizedUNNames[unIndex].length);
+                    if (lenDiff > Math.max(normalizedFileName.length, normalizedUNNames[unIndex].length) * 0.5) {
+                        return; // Skip if length difference is too large
+                    }
+                    
+                    // Optimization 3: Use pre-computed normalized names
+                    const score = calculateSimilarity(normalizedFileName, normalizedUNNames[unIndex]);
                     if (score > bestScore) {
                         bestScore = score;
                         bestMatch = { unName, score, unRow, unIndex };
@@ -633,7 +648,7 @@
                 }
             });
             
-            // Generate results text
+            // Generate results text (KEEP EXACTLY THE SAME FORMAT)
             let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
             resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\n`;
             resultsText += `📋 Total UN_List records: ${unListData.length}\n`;
