@@ -516,29 +516,212 @@
             statusText.textContent = 'Processing files...';
             resultsArea.textContent = '';
             
-            // Simulate progress
+            // Use Web Worker for faster processing
+            const workerCode = `
+                self.onmessage = function(e) {
+                    const { unListData, fileData, unNameCol, fileNameCol, threshold } = e.data;
+                    
+                    // Optimized matching with early exit and caching
+                    const matchedUNIndices = new Set();
+                    const matchedFileIndices = new Set();
+                    const highMatches = [];
+                    const partialMatches = [];
+                    
+                    // Pre-normalize all names for faster comparison
+                    const normalizedUNNames = unListData.map(row => 
+                        normalizeName(String(row[unNameCol] || '').trim())
+                    );
+                    const normalizedFileNames = fileData.map(row => 
+                        normalizeName(String(row[fileNameCol] || '').trim())
+                    );
+                    
+                    // Match each file name against UN list
+                    fileData.forEach((fileRow, fileIndex) => {
+                        if (matchedFileIndices.has(fileIndex)) return;
+                        
+                        const fileName = String(fileRow[fileNameCol] || '').trim();
+                        if (!fileName) return;
+                        
+                        const normalizedFileName = normalizedFileNames[fileIndex];
+                        if (!normalizedFileName) return;
+                        
+                        let bestMatch = null;
+                        let bestScore = 0;
+                        let bestUNIndex = -1;
+                        
+                        // Find best match in UN list (excluding already matched)
+                        unListData.forEach((unRow, unIndex) => {
+                            if (matchedUNIndices.has(unIndex)) return;
+                            
+                            const unName = String(unRow[unNameCol] || '').trim();
+                            if (!unName) return;
+                            
+                            // Quick length check for early exit
+                            const lenDiff = Math.abs(normalizedFileName.length - normalizedUNNames[unIndex].length);
+                            if (lenDiff > Math.max(normalizedFileName.length, normalizedUNNames[unIndex].length) * 0.5) {
+                                return; // Skip if length difference is too large
+                            }
+                            
+                            const score = calculateSimilarityOptimized(normalizedFileName, normalizedUNNames[unIndex]);
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestMatch = { unName, score, unRow, unIndex };
+                            }
+                        });
+                        
+                        if (bestMatch && bestScore >= 50) {
+                            // Mark both as matched
+                            matchedUNIndices.add(bestMatch.unIndex);
+                            matchedFileIndices.add(fileIndex);
+                            
+                            const matchData = {
+                                fileName,
+                                unName: bestMatch.unName,
+                                score: bestScore.toFixed(1),
+                                fileRow,
+                                unRow: bestMatch.unRow
+                            };
+                            
+                            if (bestScore >= threshold) {
+                                highMatches.push(matchData);
+                            } else {
+                                partialMatches.push(matchData);
+                            }
+                        }
+                    });
+                    
+                    self.postMessage({ highMatches, partialMatches });
+                };
+                
+                // Optimized functions for worker
+                function normalizeName(name) {
+                    if (!name) return "";
+                    let nameStr = String(name).trim().toLowerCase();
+                    const titles = ['mr', 'mrs', 'ms', 'dr', 'prof', 'sir', 'madam', 'miss', 'mx'];
+                    const words = nameStr.split(' ');
+                    const filteredWords = words.filter(word => !titles.includes(word));
+                    nameStr = filteredWords.join(' ');
+                    nameStr = nameStr.replace(/[^\\w\\s]/g, '');
+                    nameStr = nameStr.replace(/\\s+/g, ' ').trim();
+                    return nameStr;
+                }
+                
+                function calculateSimilarityOptimized(name1, name2) {
+                    if (!name1 || !name2) return 0;
+                    
+                    // Quick exact match check
+                    if (name1 === name2) return 95; // Slightly less than 100 for non-identical originals
+                    
+                    // Token-based matching
+                    const tokens1 = name1.split(/\\s+/).filter(t => t.length > 0);
+                    const tokens2 = name2.split(/\\s+/).filter(t => t.length > 0);
+                    
+                    if (tokens1.length === 0 || tokens2.length === 0) return 0;
+                    
+                    const set1 = new Set(tokens1);
+                    const set2 = new Set(tokens2);
+                    const intersection = new Set([...set1].filter(x => set2.has(x)));
+                    
+                    if (intersection.size === 0) return 0;
+                    
+                    const commonTokens = [...intersection];
+                    const totalTokens = Math.max(tokens1.length, tokens2.length);
+                    const commonRatio = (commonTokens.length / totalTokens) * 100;
+                    const exactMatches = tokens1.filter(token => tokens2.includes(token)).length;
+                    const exactBonus = (exactMatches / Math.max(tokens1.length, tokens2.length)) * 20;
+                    
+                    return Math.min(95, commonRatio + exactBonus);
+                }
+            `;
+            
+            // Create and run worker
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const worker = new Worker(URL.createObjectURL(blob));
+            
+            // Find name columns
+            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
+            const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
+            
+            if (!unNameCol || !fileNameCol) {
+                worker.terminate();
+                resultsArea.textContent = '❌ Error: Could not find name columns in uploaded files.';
+                compareBtn.disabled = false;
+                return;
+            }
+            
+            // Simulate progress while worker processes
             let progress = 0;
             const progressInterval = setInterval(() => {
-                progress += 5;
+                progress += 8;
+                if (progress > 90) progress = 90; // Stop at 90% until worker finishes
                 progressFill.style.width = progress + '%';
+                statusText.textContent = `Processing files... ${progress}%`;
+            }, 200);
+            
+            // Handle worker result
+            worker.onmessage = function(e) {
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
                 
-                if (progress >= 100) {
-                    clearInterval(progressInterval);
-                    
-                    // Perform real matching
-                    const results = performRealMatching();
-                    resultsArea.textContent = results.text;
-                    processingResults = results.data;
-                    
-                    downloadBtn.disabled = false;
-                    statusText.textContent = `Completed - ${results.data.highMatches.length} high matches, ${results.data.partialMatches.length} partial matches`;
-                    
-                    setTimeout(() => {
-                        progressFill.style.width = '0%';
-                        compareBtn.disabled = false;
-                    }, 1000);
+                const { highMatches, partialMatches } = e.data;
+                processingResults = { highMatches, partialMatches, onlyInUNList: [], onlyInFile: [] };
+                
+                // Generate results text
+                const threshold = parseInt(thresholdSlider.value);
+                let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\\n`;
+                resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\\n`;
+                resultsText += `📋 Total UN_List records: ${unListData.length}\\n`;
+                resultsText += `📋 Total file records: ${fileData.length}\\n\\n`;
+                resultsText += `============================================================\\n`;
+                resultsText += `✅ Processing completed successfully!\\n\\n`;
+                
+                if (highMatches.length > 0) {
+                    resultsText += `🤝 HIGH CONFIDENCE MATCHES:\\n`;
+                    resultsText += `--------------------------------------------------\\n`;
+                    highMatches.slice(0, 15).forEach((match, index) => {
+                        resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\\n`;
+                    });
+                    if (highMatches.length > 15) {
+                        resultsText += `... and ${highMatches.length - 15} more high matches\\n`;
+                    }
+                    resultsText += `\\n`;
                 }
-            }, 100);
+                
+                if (partialMatches.length > 0) {
+                    resultsText += `🔍 PARTIAL MATCHES (Below ${threshold}% threshold):\\n`;
+                    resultsText += `--------------------------------------------------\\n`;
+                    partialMatches.slice(0, 8).forEach((match, index) => {
+                        resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\\n`;
+                    });
+                    if (partialMatches.length > 8) {
+                        resultsText += `... and ${partialMatches.length - 8} more partial matches\\n`;
+                    }
+                    resultsText += `\\n`;
+                }
+                
+                resultsText += `============================================================`;
+                
+                resultsArea.textContent = resultsText;
+                downloadBtn.disabled = false;
+                statusText.textContent = `Completed - ${highMatches.length} high matches, ${partialMatches.length} partial matches`;
+                
+                setTimeout(() => {
+                    progressFill.style.width = '0%';
+                    compareBtn.disabled = false;
+                }, 1000);
+                
+                worker.terminate();
+                URL.revokeObjectURL(blob);
+            };
+            
+            // Start worker
+            worker.postMessage({
+                unListData,
+                fileData,
+                unNameCol,
+                fileNameCol,
+                threshold: parseInt(thresholdSlider.value)
+            });
         }
         
         // Perform real matching
