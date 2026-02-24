@@ -560,61 +560,72 @@
                 };
             }
             
-            // Perform matching
-            const unNames = new Set();
-            const fileNames = new Set();
+            // Perform matching with deduplication (like Python desktop app)
+            const matchedUNIndices = new Set();
+            const matchedFileIndices = new Set();
             
-            // Collect all names
-            unListData.forEach(row => {
-                const name = String(row[unNameCol] || '').trim();
-                if (name) {
-                    unNames.add(name.toLowerCase());
-                }
-            });
-            
-            fileData.forEach(row => {
-                const name = String(row[fileNameCol] || '').trim();
-                if (name) {
-                    fileNames.add(name.toLowerCase());
-                }
-            });
-            
-            // Find matches
-            fileData.forEach(fileRow => {
+            // Match each file name against UN list
+            fileData.forEach((fileRow, fileIndex) => {
+                if (matchedFileIndices.has(fileIndex)) return;
+                
                 const fileName = String(fileRow[fileNameCol] || '').trim();
                 if (!fileName) return;
                 
                 let bestMatch = null;
                 let bestScore = 0;
+                let bestUNIndex = -1;
                 
-                unListData.forEach(unRow => {
+                // Find best match in UN list (excluding already matched)
+                unListData.forEach((unRow, unIndex) => {
+                    if (matchedUNIndices.has(unIndex)) return;
+                    
                     const unName = String(unRow[unNameCol] || '').trim();
                     if (!unName) return;
                     
                     const score = calculateSimilarity(fileName, unName);
                     if (score > bestScore) {
                         bestScore = score;
-                        bestMatch = { unName, score, unRow };
+                        bestMatch = { unName, score, unRow, unIndex };
                     }
                 });
                 
-                if (bestMatch) {
+                if (bestMatch && bestScore >= 50) {
+                    // Mark both as matched
+                    matchedUNIndices.add(bestMatch.unIndex);
+                    matchedFileIndices.add(fileIndex);
+                    
+                    const matchData = {
+                        fileName,
+                        unName: bestMatch.unName,
+                        score: bestScore.toFixed(1),
+                        fileRow,
+                        unRow: bestMatch.unRow
+                    };
+                    
                     if (bestScore >= threshold) {
-                        highMatches.push({
-                            fileName,
-                            unName: bestMatch.unName,
-                            score: bestScore.toFixed(1),
-                            fileRow,
-                            unRow: bestMatch.unRow
-                        });
-                    } else if (bestScore >= 50) {
-                        partialMatches.push({
-                            fileName,
-                            unName: bestMatch.unName,
-                            score: bestScore.toFixed(1),
-                            fileRow,
-                            unRow: bestMatch.unRow
-                        });
+                        highMatches.push(matchData);
+                    } else {
+                        partialMatches.push(matchData);
+                    }
+                }
+            });
+            
+            // Find names only in UN list (not matched)
+            unListData.forEach((unRow, index) => {
+                if (!matchedUNIndices.has(index)) {
+                    const unName = String(unRow[unNameCol] || '').trim();
+                    if (unName) {
+                        onlyInUNList.push({ name: unName, row: unRow });
+                    }
+                }
+            });
+            
+            // Find names only in file (not matched)
+            fileData.forEach((fileRow, index) => {
+                if (!matchedFileIndices.has(index)) {
+                    const fileName = String(fileRow[fileNameCol] || '').trim();
+                    if (fileName) {
+                        onlyInFile.push({ name: fileName, row: fileRow });
                     }
                 }
             });
