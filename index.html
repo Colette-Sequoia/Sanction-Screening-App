@@ -373,8 +373,9 @@
             
             let nameStr = String(name).trim().toLowerCase();
             
-            // Remove common titles ONLY from the beginning
-            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx '];
+            // Remove common titles ONLY from the beginning (with and without periods)
+            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx ', 
+                           'mr. ', 'mrs. ', 'ms. ', 'dr. ', 'prof. ', 'sir. ', 'madam. ', 'miss. ', 'mx. '];
             for (const title of titles) {
                 if (nameStr.startsWith(title)) {
                     nameStr = nameStr.substring(title.length);
