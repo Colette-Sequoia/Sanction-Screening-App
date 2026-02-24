@@ -391,7 +391,13 @@
             const norm1 = normalizeName(name1);
             const norm2 = normalizeName(name2);
             
-            if (!norm1 || !norm2) return 0;
+            console.log(`🔍 Matching: "${name1}" ↔ "${name2}"`);
+            console.log(`Normalized: "${norm1}" ↔ "${norm2}"`);
+            
+            if (!norm1 || !norm2) {
+                console.log(`❌ Invalid normalization, score: 0`);
+                return 0;
+            }
             
             // Simple Levenshtein distance approximation
             const longer = norm1.length > norm2.length ? norm1 : norm2;
@@ -400,7 +406,11 @@
             if (longer.length === 0) return 1.0;
             
             const distance = levenshteinDistance(longer, shorter);
-            return ((longer.length - distance) / longer.length) * 100;
+            const score = ((longer.length - distance) / longer.length) * 100;
+            
+            console.log(`📊 Distance: ${distance}, Length: ${longer.length}, Score: ${score.toFixed(1)}%`);
+            
+            return score;
         }
         
         // Levenshtein distance
@@ -483,9 +493,15 @@
             const onlyInUNList = [];
             const onlyInFile = [];
             
-            // Find name columns (try common column names)
+        // Find name columns (try common column names)
             const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
             const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
+            
+            console.log('🔍 Column Detection:');
+            console.log('Reference columns:', Object.keys(unListData[0] || {}));
+            console.log('File columns:', Object.keys(fileData[0] || {}));
+            console.log('Selected reference column:', unNameCol);
+            console.log('Selected file column:', fileNameCol);
             
             if (!unNameCol || !fileNameCol) {
                 return {
@@ -595,47 +611,99 @@
         
         // Find name column
         function findNameColumn(columns, fileType) {
-            if (fileType === 'reference') {
-                // Look for "FullName" in reference data
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'fullname' || col.toLowerCase() === 'full_name') {
-                        return col;
-                    }
-                }
-                // Fallback to common name columns
-                const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'individual'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
+            console.log(`\n🔍 Analyzing columns for ${fileType} file...`);
+            console.log(`Available columns: ${columns}`);
+            
+            const columnScores = {};
+            
+            for (const col of columns) {
+                let score = 0;
+                const colLower = String(col).toLowerCase();
+                
+                // 1. Column name scoring (highest priority)
+                // Exact matches get highest scores
+                if (['fullname', 'full_name'].includes(colLower)) {
+                    score += 100;
+                    console.log(`✅ '${col}' - Exact Full Name match (+100)`);
+                } else if (colLower === 'name') {
+                    score += 90;
+                    console.log(`✅ '${col}' - Exact Name match (+90)`);
+                } else if (['client name', 'client_name'].includes(colLower)) {
+                    score += 85;
+                    console.log(`✅ '${col}' - Client Name match (+85)`);
+                } else if (['surname', 'last_name', 'family_name'].includes(colLower)) {
+                    score += 80;
+                    console.log(`✅ '${col}' - Surname match (+80)`);
+                } else if (['first_name', 'given_name', 'forename'].includes(colLower)) {
+                    score += 75;
+                    console.log(`✅ '${col}' - First Name match (+75)`);
+                } else {
+                    // Check for partial matches
+                    const nameKeywords = ['name', 'client', 'customer', 'person', 'individual', 'subject', 'target', 'entity', 'party', 'applicant'];
+                    let foundMatch = false;
+                    for (const keyword of nameKeywords) {
+                        if (colLower.includes(keyword)) {
+                            score += 50;
+                            console.log(`⚠️ '${col}' - Partial match with '${keyword}' (+50)`);
+                            foundMatch = true;
+                            break;
                         }
                     }
-                }
-            } else {
-                // Look for "Client Name" and "Surname" in file to match
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'client name' || col.toLowerCase() === 'client_name') {
-                        return col;
+                    if (!foundMatch) {
+                        console.log(`❌ '${col}' - No name keywords found`);
                     }
                 }
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'surname') {
-                        return col;
-                    }
+                
+                // 2. Heavy penalties for non-name columns
+                if (['product', 'service', 'item', 'goods', 'description'].some(word => colLower.includes(word))) {
+                    score -= 80;
+                    console.log(`🚫 '${col}' - Product column detected (-80)`);
                 }
-                // Fallback to common name columns
-                const nameKeywords = ['client name', 'surname', 'name', 'full_name', 'fullname', 'person', 'customer'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
-                        }
-                    }
+                
+                if (['?', 'is', 'are', 'does', 'do', 'did', 'will', 'can', 'should', 'would'].some(word => colLower.includes(word))) {
+                    score -= 100;
+                    console.log(`🚫 '${col}' - Question column detected (-100)`);
                 }
+                
+                if (['id', 'date', 'time', 'status', 'type', 'category', 'amount', 'value', 'number'].some(word => colLower.includes(word))) {
+                    score -= 60;
+                    console.log(`🚫 '${col}' - Metadata column detected (-60)`);
+                }
+                
+                if (colLower.includes('.') && /\d/.test(colLower)) {
+                    score -= 70;
+                    console.log(`🚫 '${col}' - Numbered column detected (-70)`);
+                }
+                
+                if (colLower.endsWith('.1') || colLower.endsWith('.2') || colLower.endsWith('.3') || colLower.endsWith('.4') || colLower.endsWith('.5') || colLower.endsWith('.6')) {
+                    score -= 50;
+                    console.log(`🚫 '${col}' - Duplicate column detected (-50)`);
+                }
+                
+                // 3. Data pattern analysis (simplified)
+                try {
+                    // For web app, we'll do basic pattern checking
+                    // In a real implementation, you'd sample the data here
+                    const patternScore = Math.random() * 20; // Placeholder for demo
+                    score += patternScore;
+                    console.log(`📊 '${col}' - Pattern score: ${patternScore.toFixed(1)}`);
+                } catch (e) {
+                    console.log(`⚠️ '${col}' - Pattern analysis failed: ${e}`);
+                }
+                
+                columnScores[col] = score;
+                console.log(`📈 '${col}' - Final score: ${score.toFixed(1)}`);
+                console.log("-".repeat(50));
             }
             
-            // Return first column as fallback
-            return columns[0];
+            // Return column with highest score
+            const bestColumn = Object.keys(columnScores).reduce((a, b) => columnScores[a] > columnScores[b] ? a : b);
+            if (bestColumn) {
+                console.log(`\n🎯 BEST COLUMN: '${bestColumn}' (score: ${columnScores[bestColumn].toFixed(1)})`);
+                return bestColumn;
+            }
+            
+            return null;
         }
         
         // Download results
