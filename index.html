@@ -487,6 +487,12 @@
             const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
             const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
             
+            console.log('🔍 Column Detection:');
+            console.log('Reference columns:', Object.keys(unListData[0] || {}));
+            console.log('File columns:', Object.keys(fileData[0] || {}));
+            console.log('Selected reference column:', unNameCol);
+            console.log('Selected file column:', fileNameCol);
+            
             if (!unNameCol || !fileNameCol) {
                 return {
                     text: '❌ Error: Could not find name columns in uploaded files. Please ensure your files have name columns.',
