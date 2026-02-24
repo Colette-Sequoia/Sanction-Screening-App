@@ -373,11 +373,14 @@
             
             let nameStr = String(name).trim().toLowerCase();
             
-            // Remove common titles
-            const titles = ['mr', 'mrs', 'ms', 'dr', 'prof', 'sir', 'madam', 'miss', 'mx'];
-            const words = nameStr.split(' ');
-            const filteredWords = words.filter(word => !titles.includes(word));
-            nameStr = filteredWords.join(' ');
+            // Remove common titles ONLY from the beginning
+            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx '];
+            for (const title of titles) {
+                if (nameStr.startsWith(title)) {
+                    nameStr = nameStr.substring(title.length);
+                    break;
+                }
+            }
             
             // Remove special characters and normalize whitespace
             nameStr = nameStr.replace(/[^\w\s]/g, '');
@@ -391,7 +394,13 @@
             const norm1 = normalizeName(name1);
             const norm2 = normalizeName(name2);
             
-            if (!norm1 || !norm2) return 0;
+            console.log(`🔍 Matching: "${name1}" ↔ "${name2}"`);
+            console.log(`Normalized: "${norm1}" ↔ "${norm2}"`);
+            
+            if (!norm1 || !norm2) {
+                console.log(`❌ Invalid normalization, score: 0`);
+                return 0;
+            }
             
             // Simple Levenshtein distance approximation
             const longer = norm1.length > norm2.length ? norm1 : norm2;
@@ -400,7 +409,11 @@
             if (longer.length === 0) return 1.0;
             
             const distance = levenshteinDistance(longer, shorter);
-            return ((longer.length - distance) / longer.length) * 100;
+            const score = ((longer.length - distance) / longer.length) * 100;
+            
+            console.log(`📊 Distance: ${distance}, Length: ${longer.length}, Score: ${score.toFixed(1)}%`);
+            
+            return score;
         }
         
         // Levenshtein distance
