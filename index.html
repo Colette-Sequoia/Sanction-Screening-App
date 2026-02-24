@@ -118,6 +118,7 @@
             border-radius: 3px;
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
         
         .threshold-slider::-webkit-slider-thumb {
@@ -385,88 +386,21 @@
             return nameStr;
         }
         
-        // Calculate similarity (enhanced fuzzy matching like Python's fuzzywuzzy)
+        // Calculate similarity (simplified fuzzy matching)
         function calculateSimilarity(name1, name2) {
             const norm1 = normalizeName(name1);
             const norm2 = normalizeName(name2);
             
             if (!norm1 || !norm2) return 0;
             
-            // Use multiple algorithms and take the best (like fuzzywuzzy)
-            const tokenRatio = tokenSetRatio(norm1, norm2);
-            const simpleRatio = calculateSimpleRatio(name1, name2);
-            const partialRatio = calculatePartialRatio(norm1, norm2);
+            // Simple Levenshtein distance approximation
+            const longer = norm1.length > norm2.length ? norm1 : norm2;
+            const shorter = norm1.length > norm2.length ? norm2 : norm1;
             
-            // Return the weighted average, but penalize perfect matches when there were differences
-            const bestRatio = Math.max(tokenRatio, simpleRatio, partialRatio);
+            if (longer.length === 0) return 1.0;
             
-            // If we got 100% but the original names were different, reduce the score
-            if (bestRatio === 100 && name1.trim() !== name2.trim()) {
-                return Math.min(95, bestRatio - 5); // Cap at 95% for non-identical names
-            }
-            
-            return bestRatio;
-        }
-        
-        // Token Set Ratio algorithm (similar to fuzzywuzzy)
-        function tokenSetRatio(str1, str2) {
-            const tokens1 = str1.split(/\s+/).filter(t => t.length > 0);
-            const tokens2 = str2.split(/\s+/).filter(t => t.length > 0);
-            
-            if (tokens1.length === 0 || tokens2.length === 0) return 0;
-            
-            // Create sets of unique tokens
-            const set1 = new Set(tokens1);
-            const set2 = new Set(tokens2);
-            
-            // Find intersection
-            const intersection = new Set([...set1].filter(x => set2.has(x)));
-            
-            // Calculate similarity based on common tokens
-            const commonTokens = [...intersection];
-            const totalTokens = Math.max(tokens1.length, tokens2.length);
-            
-            if (commonTokens.length === 0) return 0;
-            
-            // Calculate ratio based on common tokens vs total tokens
-            const commonRatio = (commonTokens.length / totalTokens) * 100;
-            
-            // Add bonus for exact token matches
-            const exactMatches = tokens1.filter(token => tokens2.includes(token)).length;
-            const exactBonus = (exactMatches / Math.max(tokens1.length, tokens2.length)) * 20;
-            
-            return Math.min(100, commonRatio + exactBonus);
-        }
-        
-        // Calculate partial ratio (like fuzzywuzzy)
-        function calculatePartialRatio(shorter, longer) {
-            if (!shorter || !longer) return 0;
-            
-            const s = shorter.length <= longer.length ? shorter : longer;
-            const l = shorter.length > longer.length ? shorter : longer;
-            
-            let bestRatio = 0;
-            
-            // Check all possible substrings of the longer string
-            for (let i = 0; i <= l.length - s.length; i++) {
-                const substring = l.substring(i, i + s.length);
-                const ratio = calculateSimpleRatio(s, substring);
-                bestRatio = Math.max(bestRatio, ratio);
-            }
-            
-            return bestRatio;
-        }
-        
-        // Calculate simple ratio (like fuzzywuzzy)
-        function calculateSimpleRatio(str1, str2) {
-            if (!str1 || !str2) return 0;
-            
-            const distance = levenshteinDistance(str1, str2);
-            const maxLength = Math.max(str1.length, str2.length);
-            
-            if (maxLength === 0) return 100;
-            
-            return Math.round(((maxLength - distance) / maxLength) * 100);
+            const distance = levenshteinDistance(longer, shorter);
+            return ((longer.length - distance) / longer.length) * 100;
         }
         
         // Levenshtein distance
@@ -560,95 +494,66 @@
                 };
             }
             
-            // Optimized matching with pre-computed normalized names and early exits
-            const matchedUNIndices = new Set();
-            const matchedFileIndices = new Set();
+            // Perform matching
+            const unNames = new Set();
+            const fileNames = new Set();
             
-            // Pre-normalize all names for faster comparison (optimization 1)
-            const normalizedUNNames = unListData.map(row => 
-                normalizeName(String(row[unNameCol] || '').trim())
-            );
-            const normalizedFileNames = fileData.map(row => 
-                normalizeName(String(row[fileNameCol] || '').trim())
-            );
+            // Collect all names
+            unListData.forEach(row => {
+                const name = String(row[unNameCol] || '').trim();
+                if (name) {
+                    unNames.add(name.toLowerCase());
+                }
+            });
             
-            // Match each file name against UN list with optimizations
-            fileData.forEach((fileRow, fileIndex) => {
-                if (matchedFileIndices.has(fileIndex)) return;
-                
+            fileData.forEach(row => {
+                const name = String(row[fileNameCol] || '').trim();
+                if (name) {
+                    fileNames.add(name.toLowerCase());
+                }
+            });
+            
+            // Find matches
+            fileData.forEach(fileRow => {
                 const fileName = String(fileRow[fileNameCol] || '').trim();
                 if (!fileName) return;
                 
-                const normalizedFileName = normalizedFileNames[fileIndex];
-                if (!normalizedFileName) return;
-                
                 let bestMatch = null;
                 let bestScore = 0;
-                let bestUNIndex = -1;
                 
-                // Find best match in UN list (excluding already matched)
-                unListData.forEach((unRow, unIndex) => {
-                    if (matchedUNIndices.has(unIndex)) return;
-                    
+                unListData.forEach(unRow => {
                     const unName = String(unRow[unNameCol] || '').trim();
                     if (!unName) return;
                     
-                    // Optimization 2: Quick length check for early exit
-                    const lenDiff = Math.abs(normalizedFileName.length - normalizedUNNames[unIndex].length);
-                    if (lenDiff > Math.max(normalizedFileName.length, normalizedUNNames[unIndex].length) * 0.5) {
-                        return; // Skip if length difference is too large
-                    }
-                    
-                    // Optimization 3: Use pre-computed normalized names
-                    const score = calculateSimilarity(normalizedFileName, normalizedUNNames[unIndex]);
+                    const score = calculateSimilarity(fileName, unName);
                     if (score > bestScore) {
                         bestScore = score;
-                        bestMatch = { unName, score, unRow, unIndex };
+                        bestMatch = { unName, score, unRow };
                     }
                 });
                 
-                if (bestMatch && bestScore >= 50) {
-                    // Mark both as matched
-                    matchedUNIndices.add(bestMatch.unIndex);
-                    matchedFileIndices.add(fileIndex);
-                    
-                    const matchData = {
-                        fileName,
-                        unName: bestMatch.unName,
-                        score: bestScore.toFixed(1),
-                        fileRow,
-                        unRow: bestMatch.unRow
-                    };
-                    
+                if (bestMatch) {
                     if (bestScore >= threshold) {
-                        highMatches.push(matchData);
-                    } else {
-                        partialMatches.push(matchData);
+                        highMatches.push({
+                            fileName,
+                            unName: bestMatch.unName,
+                            score: bestScore.toFixed(1),
+                            fileRow,
+                            unRow: bestMatch.unRow
+                        });
+                    } else if (bestScore >= 50) {
+                        partialMatches.push({
+                            fileName,
+                            unName: bestMatch.unName,
+                            score: bestScore.toFixed(1),
+                            fileRow,
+                            unRow: bestMatch.unRow
+                        });
                     }
                 }
             });
             
-            // Find names only in UN list (not matched)
-            unListData.forEach((unRow, index) => {
-                if (!matchedUNIndices.has(index)) {
-                    const unName = String(unRow[unNameCol] || '').trim();
-                    if (unName) {
-                        onlyInUNList.push({ name: unName, row: unRow });
-                    }
-                }
-            });
-            
-            // Find names only in file (not matched)
-            fileData.forEach((fileRow, index) => {
-                if (!matchedFileIndices.has(index)) {
-                    const fileName = String(fileRow[fileNameCol] || '').trim();
-                    if (fileName) {
-                        onlyInFile.push({ name: fileName, row: fileRow });
-                    }
-                }
-            });
-            
-            // Generate results text (KEEP EXACTLY THE SAME FORMAT)
+            // Generate results text
             let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
             resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\n`;
             resultsText += `📋 Total UN_List records: ${unListData.length}\n`;
@@ -690,47 +595,99 @@
         
         // Find name column
         function findNameColumn(columns, fileType) {
-            if (fileType === 'reference') {
-                // Look for "FullName" in reference data
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'fullname' || col.toLowerCase() === 'full_name') {
-                        return col;
-                    }
-                }
-                // Fallback to common name columns
-                const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'individual'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
+            console.log(`\n🔍 Analyzing columns for ${fileType} file...`);
+            console.log(`Available columns: ${columns}`);
+            
+            const columnScores = {};
+            
+            for (const col of columns) {
+                let score = 0;
+                const colLower = String(col).toLowerCase();
+                
+                // 1. Column name scoring (highest priority)
+                // Exact matches get highest scores
+                if (['fullname', 'full_name'].includes(colLower)) {
+                    score += 100;
+                    console.log(`✅ '${col}' - Exact Full Name match (+100)`);
+                } else if (colLower === 'name') {
+                    score += 90;
+                    console.log(`✅ '${col}' - Exact Name match (+90)`);
+                } else if (['client name', 'client_name'].includes(colLower)) {
+                    score += 85;
+                    console.log(`✅ '${col}' - Client Name match (+85)`);
+                } else if (['surname', 'last_name', 'family_name'].includes(colLower)) {
+                    score += 80;
+                    console.log(`✅ '${col}' - Surname match (+80)`);
+                } else if (['first_name', 'given_name', 'forename'].includes(colLower)) {
+                    score += 75;
+                    console.log(`✅ '${col}' - First Name match (+75)`);
+                } else {
+                    // Check for partial matches
+                    const nameKeywords = ['name', 'client', 'customer', 'person', 'individual', 'subject', 'target', 'entity', 'party', 'applicant'];
+                    let foundMatch = false;
+                    for (const keyword of nameKeywords) {
+                        if (colLower.includes(keyword)) {
+                            score += 50;
+                            console.log(`⚠️ '${col}' - Partial match with '${keyword}' (+50)`);
+                            foundMatch = true;
+                            break;
                         }
                     }
-                }
-            } else {
-                // Look for "Client Name" and "Surname" in file to match
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'client name' || col.toLowerCase() === 'client_name') {
-                        return col;
+                    if (!foundMatch) {
+                        console.log(`❌ '${col}' - No name keywords found`);
                     }
                 }
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'surname') {
-                        return col;
-                    }
+                
+                // 2. Heavy penalties for non-name columns
+                if (['product', 'service', 'item', 'goods', 'description'].some(word => colLower.includes(word))) {
+                    score -= 80;
+                    console.log(`🚫 '${col}' - Product column detected (-80)`);
                 }
-                // Fallback to common name columns
-                const nameKeywords = ['client name', 'surname', 'name', 'full_name', 'fullname', 'person', 'customer'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
-                        }
-                    }
+                
+                if (['?', 'is', 'are', 'does', 'do', 'did', 'will', 'can', 'should', 'would'].some(word => colLower.includes(word))) {
+                    score -= 100;
+                    console.log(`🚫 '${col}' - Question column detected (-100)`);
                 }
+                
+                if (['id', 'date', 'time', 'status', 'type', 'category', 'amount', 'value', 'number'].some(word => colLower.includes(word))) {
+                    score -= 60;
+                    console.log(`🚫 '${col}' - Metadata column detected (-60)`);
+                }
+                
+                if (colLower.includes('.') && /\d/.test(colLower)) {
+                    score -= 70;
+                    console.log(`🚫 '${col}' - Numbered column detected (-70)`);
+                }
+                
+                if (colLower.endsWith('.1') || colLower.endsWith('.2') || colLower.endsWith('.3') || colLower.endsWith('.4') || colLower.endsWith('.5') || colLower.endsWith('.6')) {
+                    score -= 50;
+                    console.log(`🚫 '${col}' - Duplicate column detected (-50)`);
+                }
+                
+                // 3. Data pattern analysis (simplified)
+                try {
+                    // For web app, we'll do basic pattern checking
+                    // In a real implementation, you'd sample the data here
+                    const patternScore = Math.random() * 20; // Placeholder for demo
+                    score += patternScore;
+                    console.log(`📊 '${col}' - Pattern score: ${patternScore.toFixed(1)}`);
+                } catch (e) {
+                    console.log(`⚠️ '${col}' - Pattern analysis failed: ${e}`);
+                }
+                
+                columnScores[col] = score;
+                console.log(`📈 '${col}' - Final score: ${score.toFixed(1)}`);
+                console.log("-".repeat(50));
             }
             
-            // Return first column as fallback
-            return columns[0];
+            // Return column with highest score
+            const bestColumn = Object.keys(columnScores).reduce((a, b) => columnScores[a] > columnScores[b] ? a : b);
+            if (bestColumn) {
+                console.log(`\n🎯 BEST COLUMN: '${bestColumn}' (score: ${columnScores[bestColumn].toFixed(1)})`);
+                return bestColumn;
+            }
+            
+            return null;
         }
         
         // Download results
@@ -740,41 +697,27 @@
                 return;
             }
             
-            // Simple CSV download - always works
-            try {
-                let csvContent = "Type,File Name,UN List Name,Match Score (%),Match Type\n";
-                
-                // Add high matches
-                processingResults.highMatches.forEach((match, index) => {
-                    const fileName = String(match.fileName || '').replace(/"/g, '""');
-                    const unName = String(match.unName || '').replace(/"/g, '""');
-                    const score = match.score || 0;
-                    csvContent += `High Match,"${fileName}","${unName}",${score},High Confidence\n`;
-                });
-                
-                // Add partial matches
-                processingResults.partialMatches.forEach((match, index) => {
-                    const fileName = String(match.fileName || '').replace(/"/g, '""');
-                    const unName = String(match.unName || '').replace(/"/g, '""');
-                    const score = match.score || 0;
-                    csvContent += `Partial Match,"${fileName}","${unName}",${score},Partial Match\n`;
-                });
-                
-                // Create download
-                const blob = new Blob([csvContent], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.csv';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('Download failed. Please try again.');
-            }
+            // Create CSV content
+            let csvContent = "Type,File Name,UN List Name,Score (%)\n";
+            
+            processingResults.highMatches.forEach(match => {
+                csvContent += `High Match,"${match.fileName}","${match.unName}",${match.score}\n`;
+            });
+            
+            processingResults.partialMatches.forEach(match => {
+                csvContent += `Partial Match,"${match.fileName}","${match.unName}",${match.score}\n`;
+            });
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>
