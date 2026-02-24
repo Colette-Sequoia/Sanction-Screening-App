@@ -483,13 +483,9 @@
             const onlyInUNList = [];
             const onlyInFile = [];
             
-            // Find name columns (try common column names)
-            const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
-            const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
-            
-            console.log('Debug - Selected columns:', unNameCol, fileNameCol);
-            console.log('Debug - Reference data sample:', unListData[0]);
-            console.log('Debug - File data sample:', fileData[0]);
+            // Find name columns (use specific columns)
+            const unNameCol = 'FullName';
+            const fileNameCol = 'Client Name and Surname';
             
             if (!unNameCol || !fileNameCol) {
                 return {
@@ -522,8 +518,6 @@
                 const fileName = String(fileRow[fileNameCol] || '').trim();
                 if (!fileName) return;
                 
-                console.log('Debug - Processing file name:', fileName);
-                
                 let bestMatch = null;
                 let bestScore = 0;
                 
@@ -537,8 +531,6 @@
                         bestMatch = { unName, score, unRow };
                     }
                 });
-                
-                console.log('Debug - Best match for', fileName, ':', bestMatch);
                 
                 if (bestMatch) {
                     if (bestScore >= threshold) {
@@ -560,8 +552,6 @@
                     }
                 }
             });
-            
-            console.log('Debug - Final counts:', highMatches.length, partialMatches.length);
             
             // Generate results text
             let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
