@@ -373,11 +373,14 @@
             
             let nameStr = String(name).trim().toLowerCase();
             
-            // Remove common titles
-            const titles = ['mr', 'mrs', 'ms', 'dr', 'prof', 'sir', 'madam', 'miss', 'mx'];
-            const words = nameStr.split(' ');
-            const filteredWords = words.filter(word => !titles.includes(word));
-            nameStr = filteredWords.join(' ');
+            // Remove common titles ONLY from the beginning
+            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx '];
+            for (const title of titles) {
+                if (nameStr.startsWith(title)) {
+                    nameStr = nameStr.substring(title.length);
+                    break;
+                }
+            }
             
             // Remove special characters and normalize whitespace
             nameStr = nameStr.replace(/[^\w\s]/g, '');
