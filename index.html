@@ -392,8 +392,20 @@
             
             if (!norm1 || !norm2) return 0;
             
-            // Use token set ratio algorithm (similar to fuzzywuzzy)
-            return tokenSetRatio(norm1, norm2);
+            // Use multiple algorithms and take the best (like fuzzywuzzy)
+            const tokenRatio = tokenSetRatio(norm1, norm2);
+            const simpleRatio = calculateSimpleRatio(name1, name2);
+            const partialRatio = calculatePartialRatio(norm1, norm2);
+            
+            // Return the weighted average, but penalize perfect matches when there were differences
+            const bestRatio = Math.max(tokenRatio, simpleRatio, partialRatio);
+            
+            // If we got 100% but the original names were different, reduce the score
+            if (bestRatio === 100 && name1.trim() !== name2.trim()) {
+                return Math.min(95, bestRatio - 5); // Cap at 95% for non-identical names
+            }
+            
+            return bestRatio;
         }
         
         // Token Set Ratio algorithm (similar to fuzzywuzzy)
@@ -410,29 +422,20 @@
             // Find intersection
             const intersection = new Set([...set1].filter(x => set2.has(x)));
             
-            // Find tokens only in one string
-            const onlyIn1 = new Set([...set1].filter(x => !set2.has(x)));
-            const onlyIn2 = new Set([...set2].filter(x => !set1.has(x)));
-            
             // Calculate similarity based on common tokens
             const commonTokens = [...intersection];
-            const uniqueTokens = [...onlyIn1, ...onlyIn2];
+            const totalTokens = Math.max(tokens1.length, tokens2.length);
             
-            // If there are common tokens, calculate ratio
-            if (commonTokens.length > 0) {
-                const commonStr = commonTokens.join(' ');
-                const uniqueStr = uniqueTokens.join(' ');
-                
-                // Calculate partial ratio for common tokens
-                const commonRatio = calculatePartialRatio(str1, commonStr);
-                const uniqueRatio = calculatePartialRatio(str2, commonStr);
-                
-                // Return the best ratio
-                return Math.max(commonRatio, uniqueRatio);
-            }
+            if (commonTokens.length === 0) return 0;
             
-            // Fallback to simple ratio
-            return calculateSimpleRatio(str1, str2);
+            // Calculate ratio based on common tokens vs total tokens
+            const commonRatio = (commonTokens.length / totalTokens) * 100;
+            
+            // Add bonus for exact token matches
+            const exactMatches = tokens1.filter(token => tokens2.includes(token)).length;
+            const exactBonus = (exactMatches / Math.max(tokens1.length, tokens2.length)) * 20;
+            
+            return Math.min(100, commonRatio + exactBonus);
         }
         
         // Calculate partial ratio (like fuzzywuzzy)
