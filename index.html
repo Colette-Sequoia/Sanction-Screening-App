@@ -741,6 +741,11 @@
             }
             
             try {
+                // Check if XLSX library is loaded
+                if (typeof XLSX === 'undefined') {
+                    throw new Error('XLSX library not loaded. Please refresh the page and try again.');
+                }
+                
                 // Create Excel workbook with multiple sheets
                 const wb = XLSX.utils.book_new();
                 
@@ -800,7 +805,47 @@
                 
             } catch (error) {
                 console.error('Error creating Excel file:', error);
-                alert('Error creating Excel file. Please check console for details.');
+                console.error('Processing results:', processingResults);
+                console.error('XLSX library available:', typeof XLSX !== 'undefined');
+                
+                // Fallback to CSV if Excel fails
+                if (confirm('Excel export failed. Would you like to download CSV instead?')) {
+                    downloadCSV();
+                }
+            }
+        }
+        
+        // Fallback CSV download function
+        function downloadCSV() {
+            if (!processingResults) {
+                alert('No results to download');
+                return;
+            }
+            
+            try {
+                let csvContent = "Type,File Name,UN List Name,Score (%)\n";
+                
+                processingResults.highMatches.forEach(match => {
+                    csvContent += `High Match,"${match.fileName || ''}","${match.unName || ''}",${match.score || 0}\n`;
+                });
+                
+                processingResults.partialMatches.forEach(match => {
+                    csvContent += `Partial Match,"${match.fileName || ''}","${match.unName || ''}",${match.score || 0}\n`;
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error creating CSV file:', error);
+                alert('Error creating CSV file. Please check console for details.');
             }
         }
     </script>
