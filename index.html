@@ -373,14 +373,11 @@
             
             let nameStr = String(name).trim().toLowerCase();
             
-            // Remove common titles ONLY from the beginning
-            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx '];
-            for (const title of titles) {
-                if (nameStr.startsWith(title)) {
-                    nameStr = nameStr.substring(title.length);
-                    break;
-                }
-            }
+            // Remove common titles
+            const titles = ['mr', 'mrs', 'ms', 'dr', 'prof', 'sir', 'madam', 'miss', 'mx'];
+            const words = nameStr.split(' ');
+            const filteredWords = words.filter(word => !titles.includes(word));
+            nameStr = filteredWords.join(' ');
             
             // Remove special characters and normalize whitespace
             nameStr = nameStr.replace(/[^\w\s]/g, '');
@@ -389,67 +386,18 @@
             return nameStr;
         }
         
-        // Calculate similarity (token-based fuzzy matching)
+        // Calculate similarity (simplified fuzzy matching)
         function calculateSimilarity(name1, name2) {
             const norm1 = normalizeName(name1);
             const norm2 = normalizeName(name2);
             
-            console.log(`🔍 Matching: "${name1}" ↔ "${name2}"`);
-            console.log(`Normalized: "${norm1}" ↔ "${norm2}"`);
+            if (!norm1 || !norm2) return 0;
             
-            if (!norm1 || !norm2) {
-                console.log(`❌ Invalid normalization, score: 0`);
-                return 0;
-            }
+            // Simple Levenshtein distance approximation
+            const longer = norm1.length > norm2.length ? norm1 : norm2;
+            const shorter = norm1.length > norm2.length ? norm2 : norm1;
             
-            // Token-based approach (like the Python version)
-            const tokens1 = norm1.split(' ').filter(t => t.length > 0);
-            const tokens2 = norm2.split(' ').filter(t => t.length > 0);
-            
-            console.log(`Tokens1: [${tokens1.join(', ')}]`);
-            console.log(`Tokens2: [${tokens2.join(', ')}]`);
-            
-            if (tokens1.length === 0 || tokens2.length === 0) {
-                console.log(`❌ No tokens, score: 0`);
-                return 0;
-            }
-            
-            let matches = 0;
-            const totalTokens = Math.max(tokens1.length, tokens2.length);
-            
-            // Check each token against tokens in the other name
-            for (const token1 of tokens1) {
-                for (const token2 of tokens2) {
-                    // Exact token match
-                    if (token1 === token2) {
-                        matches += 1;
-                        console.log(`✅ Exact match: "${token1}"`);
-                        break;
-                    }
-                    // Partial token match (if token is longer than 2 chars)
-                    else if (token1.length > 2 && token2.length > 2) {
-                        const similarity = tokenSimilarity(token1, token2);
-                        if (similarity >= 80) { // 80% threshold for partial token match
-                            matches += 0.8; // Partial credit
-                            console.log(`⚠️ Partial match: "${token1}" ↔ "${token2}" (${similarity.toFixed(1)}%)`);
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            const score = (matches / totalTokens) * 100;
-            console.log(`📊 Matches: ${matches}/${totalTokens}, Score: ${score.toFixed(1)}%`);
-            
-            return score;
-        }
-        
-        // Calculate similarity between two tokens
-        function tokenSimilarity(token1, token2) {
-            const longer = token1.length > token2.length ? token1 : token2;
-            const shorter = token1.length > token2.length ? token2 : token1;
-            
-            if (longer.length === 0) return 100.0;
+            if (longer.length === 0) return 1.0;
             
             const distance = levenshteinDistance(longer, shorter);
             return ((longer.length - distance) / longer.length) * 100;
@@ -538,12 +486,6 @@
             // Find name columns (try common column names)
             const unNameCol = findNameColumn(Object.keys(unListData[0] || {}), 'reference');
             const fileNameCol = findNameColumn(Object.keys(fileData[0] || {}), 'file');
-            
-            console.log('🔍 Column Detection:');
-            console.log('Reference columns:', Object.keys(unListData[0] || {}));
-            console.log('File columns:', Object.keys(fileData[0] || {}));
-            console.log('Selected reference column:', unNameCol);
-            console.log('Selected file column:', fileNameCol);
             
             if (!unNameCol || !fileNameCol) {
                 return {
