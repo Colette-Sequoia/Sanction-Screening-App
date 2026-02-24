@@ -494,19 +494,33 @@
                 };
             }
             
+            // Filter out invalid data from both datasets
+            const filteredUnList = unListData.filter(row => {
+                const name = String(row[unNameCol] || '').trim();
+                return name && !isInvalidName(name);
+            });
+            
+            const filteredFileData = fileData.filter(row => {
+                const name = String(row[fileNameCol] || '').trim();
+                return name && !isInvalidName(name);
+            });
+            
+            console.log(`Filtered ${unListData.length} -> ${filteredUnList.length} UN List records`);
+            console.log(`Filtered ${fileData.length} -> ${filteredFileData.length} file records`);
+            
             // Perform matching
             const unNames = new Set();
             const fileNames = new Set();
             
             // Collect all names
-            unListData.forEach(row => {
+            filteredUnList.forEach(row => {
                 const name = String(row[unNameCol] || '').trim();
                 if (name) {
                     unNames.add(name.toLowerCase());
                 }
             });
             
-            fileData.forEach(row => {
+            filteredFileData.forEach(row => {
                 const name = String(row[fileNameCol] || '').trim();
                 if (name) {
                     fileNames.add(name.toLowerCase());
@@ -514,14 +528,14 @@
             });
             
             // Find matches
-            fileData.forEach(fileRow => {
+            filteredFileData.forEach(fileRow => {
                 const fileName = String(fileRow[fileNameCol] || '').trim();
                 if (!fileName) return;
                 
                 let bestMatch = null;
                 let bestScore = 0;
                 
-                unListData.forEach(unRow => {
+                filteredUnList.forEach(unRow => {
                     const unName = String(unRow[unNameCol] || '').trim();
                     if (!unName) return;
                     
@@ -557,7 +571,9 @@
             let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
             resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\n`;
             resultsText += `📋 Total UN_List records: ${unListData.length}\n`;
-            resultsText += `📋 Total file records: ${fileData.length}\n\n`;
+            resultsText += `📋 Total file records: ${fileData.length}\n`;
+            resultsText += `✅ Valid UN_List records: ${filteredUnList.length}\n`;
+            resultsText += `✅ Valid file records: ${filteredFileData.length}\n\n`;
             resultsText += `============================================================\n`;
             resultsText += `✅ Processing completed successfully!\n\n`;
             
@@ -591,6 +607,63 @@
                 text: resultsText,
                 data: { highMatches, partialMatches, onlyInUNList, onlyInFile }
             };
+        }
+        
+        // Check if a value is a valid name (not email, phone, etc.)
+        function isInvalidName(value) {
+            const str = String(value).trim().toLowerCase();
+            
+            // Skip if too short or too long
+            if (str.length < 2 || str.length > 100) {
+                return true;
+            }
+            
+            // Skip if looks like email
+            if (str.includes('@') && str.includes('.')) {
+                return true;
+            }
+            
+            // Skip if looks like URL/website
+            if (str.includes('http') || str.includes('www') || str.includes('.com')) {
+                return true;
+            }
+            
+            // Skip if looks like phone number
+            if (/\d/.test(str) && str.replace(/[^0-9]/g, '').length >= 10) {
+                return true;
+            }
+            
+            // Skip if looks like numbers/dates
+            if (/^[\d\-\/.]+$/.test(str)) {
+                return true;
+            }
+            
+            // Skip if it's a boolean/yes-no response
+            if (['yes', 'no', 'true', 'false', 'y', 'n', '1', '0'].includes(str)) {
+                return true;
+            }
+            
+            // Skip if it's a question
+            if (str.includes('?')) {
+                return true;
+            }
+            
+            // Skip if contains numbers (product codes, IDs, etc.)
+            if (/\d/.test(str)) {
+                return true;
+            }
+            
+            // Skip if has special characters common in non-names
+            if (/[-_\/|()[\]{}]/.test(str)) {
+                return true;
+            }
+            
+            // Skip if single character
+            if (str.length === 1) {
+                return true;
+            }
+            
+            return false;
         }
         
         // Find name column
