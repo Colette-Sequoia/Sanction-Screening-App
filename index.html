@@ -740,62 +740,68 @@
                 return;
             }
             
-            // Create Excel workbook with multiple sheets
-            const wb = XLSX.utils.book_new();
-            
-            // High Matches Sheet
-            if (processingResults.highMatches.length > 0) {
-                const highMatchesData = processingResults.highMatches.map((match, index) => ({
-                    'No.': index + 1,
-                    'File Name': match.fileName,
-                    'UN List Name': match.unName,
-                    'Match Score (%)': match.score,
-                    'Match Type': 'High Confidence'
-                }));
+            try {
+                // Create Excel workbook with multiple sheets
+                const wb = XLSX.utils.book_new();
                 
-                const wsHigh = XLSX.utils.json_to_sheet(highMatchesData);
-                XLSX.utils.book_append_sheet(wb, wsHigh, 'High Confidence Matches');
-            }
-            
-            // Partial Matches Sheet
-            if (processingResults.partialMatches.length > 0) {
-                const partialMatchesData = processingResults.partialMatches.map((match, index) => ({
-                    'No.': index + 1,
-                    'File Name': match.fileName,
-                    'UN List Name': match.unName,
-                    'Match Score (%)': match.score,
-                    'Match Type': 'Partial Match'
-                }));
+                // High Matches Sheet
+                if (processingResults.highMatches.length > 0) {
+                    const highMatchesData = processingResults.highMatches.map((match, index) => ({
+                        'No.': index + 1,
+                        'File Name': match.fileName || '',
+                        'UN List Name': match.unName || '',
+                        'Match Score (%)': parseFloat(match.score) || 0,
+                        'Match Type': 'High Confidence'
+                    }));
+                    
+                    const wsHigh = XLSX.utils.json_to_sheet(highMatchesData);
+                    XLSX.utils.book_append_sheet(wb, wsHigh, 'High Confidence Matches');
+                }
                 
-                const wsPartial = XLSX.utils.json_to_sheet(partialMatchesData);
-                XLSX.utils.book_append_sheet(wb, wsPartial, 'Partial Matches');
+                // Partial Matches Sheet
+                if (processingResults.partialMatches.length > 0) {
+                    const partialMatchesData = processingResults.partialMatches.map((match, index) => ({
+                        'No.': index + 1,
+                        'File Name': match.fileName || '',
+                        'UN List Name': match.unName || '',
+                        'Match Score (%)': parseFloat(match.score) || 0,
+                        'Match Type': 'Partial Match'
+                    }));
+                    
+                    const wsPartial = XLSX.utils.json_to_sheet(partialMatchesData);
+                    XLSX.utils.book_append_sheet(wb, wsPartial, 'Partial Matches');
+                }
+                
+                // Summary Sheet
+                const summaryData = [
+                    { 'Metric': 'Total High Confidence Matches', 'Value': processingResults.highMatches.length },
+                    { 'Metric': 'Total Partial Matches', 'Value': processingResults.partialMatches.length },
+                    { 'Metric': 'Total Matches', 'Value': processingResults.highMatches.length + processingResults.partialMatches.length },
+                    { 'Metric': 'Match Threshold Used', 'Value': (thresholdSlider.value || 80) + '%' },
+                    { 'Metric': 'Processing Date', 'Value': new Date().toLocaleString() }
+                ];
+                
+                const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+                
+                // Generate and download Excel file
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+                
+                // Create download link
+                const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error creating Excel file:', error);
+                alert('Error creating Excel file. Please check console for details.');
             }
-            
-            // Summary Sheet
-            const summaryData = [
-                { 'Metric': 'Total High Confidence Matches', 'Value': processingResults.highMatches.length },
-                { 'Metric': 'Total Partial Matches', 'Value': processingResults.partialMatches.length },
-                { 'Metric': 'Total Matches', 'Value': processingResults.highMatches.length + processingResults.partialMatches.length },
-                { 'Metric': 'Match Threshold Used', 'Value': thresholdSlider.value + '%' },
-                { 'Metric': 'Processing Date', 'Value': new Date().toLocaleString() }
-            ];
-            
-            const wsSummary = XLSX.utils.json_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-            
-            // Generate and download Excel file
-            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
-            
-            // Create download link
-            const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
         }
     </script>
 </body>
