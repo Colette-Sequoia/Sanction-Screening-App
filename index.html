@@ -1,715 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sanction Screening App - Real Processing</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #444647;
-            color: white;
-            padding: 20px;
-        }
-        
-        .app-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #05263B;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        
-        .header {
-            background: #05263B;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid #073855;
-        }
-        
-        .app-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 10px;
-        }
-        
-        .logo {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 140px;
-            height: 40px;
-            background: white;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #05263B;
-        }
-        
-        .main-content {
-            padding: 20px;
-        }
-        
-        .card {
-            background: #073855;
-            border: 2px solid #05263B;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .card-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .file-upload {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .file-label {
-            background: #05263B;
-            padding: 8px 15px;
-            border-radius: 6px;
-            flex: 1;
-            text-align: center;
-        }
-        
-        .browse-btn {
-            background: white;
-            color: #05263B;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .browse-btn:hover {
-            background: #f0f0f0;
-        }
-        
-        .threshold-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .threshold-slider {
-            flex: 1;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-        
-        .threshold-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        
-        .threshold-value {
-            background: white;
-            color: #05263B;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            min-width: 50px;
-            text-align: center;
-        }
-        
-        .compare-btn {
-            background: white;
-            color: #05263B;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        
-        .compare-btn:hover {
-            background: #f0f0f0;
-        }
-        
-        .compare-btn:disabled {
-            background: #e0e0e0;
-            color: #999;
-            cursor: not-allowed;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: #27ae60;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        
-        .status-text {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-        
-        .download-btn {
-            background: white;
-            color: #05263B;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px auto;
-            display: block;
-        }
-        
-        .download-btn:hover {
-            background: #f0f0f0;
-        }
-        
-        .download-btn:disabled {
-            background: #e0e0e0;
-            color: #999;
-            cursor: not-allowed;
-        }
-        
-        .results-area {
-            background: white;
-            color: #05263B;
-            border: 2px solid #05263B;
-            border-radius: 6px;
-            padding: 15px;
-            min-height: 200px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-        }
-        
-        .warning {
-            background: #ff6b6b;
-            color: white;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanction Screening – Sequoia Investment Solutions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:Arial,sans-serif;background:#444647;color:#fff;padding:20px;min-height:100vh;}
+  .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:12px;overflow:hidden;}
+  .header{background:#05263B;padding:20px;text-align:center;border-bottom:2px solid #073855;}
+  .header h1{font-size:28px;font-weight:bold;color:#fff;}
+  .main{padding:20px;}
+  .card{background:#073855;border:2px solid #05263B;border-radius:8px;padding:20px;margin-bottom:20px;}
+  .card-title{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .step-badge{background:#fff;color:#05263B;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+  .card-title h2{font-size:18px;font-weight:bold;color:#fff;}
+  .desc{font-size:13px;color:#b0c4d8;margin-bottom:14px;line-height:1.6;}
+  .file-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .file-label{background:#05263B;padding:8px 15px;border-radius:6px;flex:1;text-align:center;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .btn{background:#fff;color:#05263B;border:none;padding:8px 16px;border-radius:6px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;font-size:14px;}
+  .btn:hover{background:#f0f0f0;}
+  .btn:disabled{background:#ccc;color:#999;cursor:not-allowed;}
+  .btn-green{background:#27ae60;color:#fff;}
+  .btn-green:hover{background:#219a52;}
+  .btn-full{width:100%;padding:12px 25px;font-size:14px;display:block;margin:0 auto;}
+  .btn-center{padding:12px 25px;font-size:14px;display:block;margin:0 auto;}
+  .success{font-size:12px;color:#27ae60;margin-bottom:6px;}
+  .col-picker{margin-top:12px;padding:12px 14px;background:#05263B;border-radius:6px;}
+  .col-picker label{font-size:12px;font-weight:bold;color:#fff;display:block;margin-bottom:8px;}
+  .col-btns{display:flex;flex-wrap:wrap;gap:6px;}
+  .col-btn{padding:6px 14px;font-size:12px;font-weight:400;border:none;border-radius:6px;cursor:pointer;font-family:Arial,sans-serif;background:rgba(255,255,255,0.12);color:#ccc;transition:all 0.15s;}
+  .col-btn.active{background:#27ae60;color:#fff;font-weight:800;box-shadow:0 0 0 2px #fff;}
+  .force-pick{background:#7a4f00;padding:12px 14px;border-radius:6px;margin-top:10px;}
+  .force-pick p{font-size:13px;font-weight:bold;margin-bottom:8px;}
+  .threshold-row{display:flex;align-items:center;gap:15px;}
+  .threshold-val{background:#fff;color:#05263B;padding:5px 12px;border-radius:4px;font-weight:bold;min-width:54px;text-align:center;}
+  input[type=range]{flex:1;height:6px;accent-color:#fff;cursor:pointer;}
+  .progress-bar{width:100%;height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-bottom:10px;}
+  .progress-fill{height:100%;width:0%;background:#27ae60;transition:width 0.3s ease;border-radius:4px;}
+  .status{text-align:center;font-size:14px;margin-bottom:10px;}
+  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+  .summary-box{background:#05263B;border-radius:8px;padding:12px 10px;text-align:center;}
+  .summary-num{font-size:22px;font-weight:800;line-height:1;}
+  .summary-lbl{font-size:11px;color:#ccc;margin-top:2px;}
+  .results-table-wrap{background:#fff;color:#05263B;border-radius:6px;overflow:hidden;max-height:380px;overflow-y:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead{position:sticky;top:0;}
+  thead tr{background:#05263B;color:#fff;}
+  th{padding:10px 12px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.4px;}
+  td{padding:10px 12px;border-bottom:1px solid #e0e0e0;}
+  tr:nth-child(even) td{background:#f9f9f9;}
+  .badge-high{background:#d4edda;color:#155724;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;}
+  .badge-partial{background:#fff3cd;color:#856404;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;}
+  .score-bar-wrap{display:flex;align-items:center;gap:8px;}
+  .score-bar-bg{height:5px;width:60px;background:#e0e0e0;border-radius:3px;overflow:hidden;}
+  .score-bar-fill{height:100%;border-radius:3px;}
+  .score-val{font-weight:700;min-width:36px;}
+  .no-results{padding:20px;text-align:center;color:#666;}
+  .placeholder{background:#fff;color:#05263B;border-radius:6px;padding:15px;min-height:200px;font-family:monospace;font-size:12px;}
+
+  /* PDF Preview */
+  .pdf-preview{margin-top:14px;background:#05263B;border-radius:8px;padding:16px;}
+  .pdf-preview h3{font-size:14px;font-weight:bold;margin-bottom:6px;}
+  .pdf-preview p{font-size:12px;color:#b0c4d8;margin-bottom:10px;}
+  .pdf-actions{display:flex;gap:8px;margin-bottom:10px;}
+  .pdf-lines{background:#073855;border-radius:6px;max-height:200px;overflow-y:auto;padding:10px;margin-bottom:12px;}
+  .pdf-line{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;cursor:pointer;margin-bottom:2px;}
+  .pdf-line:hover{background:rgba(255,255,255,0.05);}
+  .pdf-line.checked{background:rgba(255,255,255,0.08);}
+  .pdf-checkbox{width:16px;height:16px;border-radius:3px;border:2px solid #555;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .pdf-checkbox.on{background:#27ae60;border-color:#27ae60;color:#fff;}
+  .pdf-line-text{font-size:13px;}
+  .pdf-line.checked .pdf-line-text{color:#fff;}
+  .pdf-line:not(.checked) .pdf-line-text{color:#888;}
+  .pdf-confirm-row{display:flex;gap:8px;}
+  .btn-cancel{background:transparent;border:1px solid #555;color:#aaa;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;}
+
+  /* Disclaimer Modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .modal{background:#05263B;border:2px solid #073855;border-radius:12px;max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal-header{background:#073855;padding:18px 24px;border-bottom:2px solid #05263B;flex-shrink:0;}
+  .modal-header h2{font-size:20px;font-weight:bold;color:#fff;margin-bottom:4px;}
+  .modal-header p{font-size:12px;color:#b0c4d8;}
+  .modal-body{overflow-y:auto;padding:20px 24px;flex:1;}
+  .modal-section{margin-bottom:16px;}
+  .modal-section h3{font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;}
+  .modal-section p{font-size:12.5px;color:#b0c4d8;line-height:1.65;}
+  .modal-footer-text{font-size:11.5px;color:#7a95a8;border-top:1px solid #073855;padding-top:12px;margin-top:4px;}
+  .modal-footer{background:#073855;padding:16px 24px;border-top:2px solid #05263B;flex-shrink:0;}
+  .modal-footer p{font-size:12px;color:#b0c4d8;margin-bottom:12px;}
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <div class="app-title">🔍 Sanction Screening</div>
-        </div>
-        
-        <div class="main-content">
-            <!-- Reference Data Upload -->
-            <div class="card">
-                <div class="card-title">📋 Upload Reference Data</div>
-                <div class="warning">⚠️ Please upload your reference data file (e.g., UN_List.xlsx)</div>
-                <div class="file-upload">
-                    <div class="file-label" id="unListLabel">No reference file selected</div>
-                    <button class="browse-btn" onclick="selectUNList()">Browse</button>
-                </div>
-                <input type="file" id="unListInput" style="display: none;" accept=".xlsx,.xls,.csv">
-                <div id="unListStatus" style="margin-top: 10px; font-size: 12px;"></div>
-            </div>
-            
-            <!-- File Upload -->
-            <div class="card">
-                <div class="card-title">📁 Select File to Match</div>
-                <div class="file-upload">
-                    <div class="file-label" id="fileLabel">No file selected</div>
-                    <button class="browse-btn" onclick="selectFile()">Browse</button>
-                </div>
-                <input type="file" id="fileInput" style="display: none;" accept=".xlsx,.xls,.csv">
-            </div>
-            
-            <!-- Settings -->
-            <div class="card">
-                <div class="card-title">⚙️ Settings</div>
-                <div class="threshold-container">
-                    <span>🎯 Match Threshold:</span>
-                    <input type="range" class="threshold-slider" id="thresholdSlider" min="50" max="100" value="80">
-                    <div class="threshold-value" id="thresholdValue">80%</div>
-                </div>
-            </div>
-            
-            <!-- Process Button -->
-            <button class="compare-btn" id="compareBtn" onclick="processFiles()" disabled>🚀 Compare Names</button>
-            
-            <!-- Progress -->
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="status-text" id="statusText">Ready to process files</div>
-            
-            <!-- Download Button -->
-            <button class="download-btn" id="downloadBtn" onclick="downloadResults()" disabled>💾 Download Results</button>
-            
-            <!-- Results -->
-            <div class="card">
-                <div class="card-title">📊 Results</div>
-                <div class="results-area" id="resultsArea">
-                    Results will appear here after processing...
-                </div>
-            </div>
-        </div>
+
+<!-- Disclaimer Modal -->
+<div class="modal-overlay" id="disclaimerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Disclaimer &amp; Terms of Use</h2>
+      <p>Sequoia Investment Solutions – Sanctions Screening Application</p>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section"><h3>1. General Disclaimer</h3><p>This Sanctions Screening Application is provided by Sequoia Investment Solutions strictly as an internal decision-support tool. It is designed to assist compliance personnel in identifying potential matches between client names and the UN Consolidated Sanctions List. It is not intended to serve as a definitive compliance determination, legal advice, or a substitute for professional judgment.</p></div>
+      <div class="modal-section"><h3>2. No Warranty on Results</h3><p>Sequoia Investment Solutions makes no representations, warranties, or guarantees regarding the accuracy, completeness, or reliability of the results produced by this App. The fuzzy-matching algorithm is probabilistic and may produce false positives or false negatives. Sequoia Investment Solutions accepts no responsibility or liability for any errors, omissions, or inaccuracies in the screening results.</p></div>
+      <div class="modal-section"><h3>3. No Legal or Compliance Advice</h3><p>Nothing produced by this App constitutes legal advice or a formal compliance opinion. All results must be reviewed and verified by a suitably qualified compliance officer or legal professional, and cross-referenced against the most current official sanctions lists. Users are solely responsible for ensuring compliance with all applicable laws and regulations, including those administered by the UN Security Council, FATF, FIC, and SARB.</p></div>
+      <div class="modal-section"><h3>4. Data Accuracy &amp; Currency</h3><p>The accuracy of results depends entirely on the quality and currency of data uploaded by the User. Sequoia Investment Solutions does not automatically update or verify the sanctions list data and is not responsible for consequences arising from the use of outdated or incorrectly formatted data.</p></div>
+      <div class="modal-section"><h3>5. Limitation of Liability</h3><p>To the fullest extent permitted by applicable law, Sequoia Investment Solutions, its directors, officers, employees, and agents shall not be liable for any direct, indirect, incidental, or consequential damages arising from use of this App, including any regulatory action, penalty, reputational harm, or financial loss howsoever caused.</p></div>
+      <div class="modal-section"><h3>6. User Responsibility</h3><p>By acknowledging this disclaimer, you confirm that you are an authorised user, that you will not make compliance or business decisions based solely on the output of this App without independent verification, and that you accept full responsibility for any decisions or actions taken based on the App's results.</p></div>
+      <div class="modal-section"><h3>7. Data Privacy (POPIA)</h3><p>All client data uploaded must be handled in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA). All processing occurs locally within your browser session. Sequoia Investment Solutions does not store, transmit, or have access to any data uploaded through this App.</p></div>
+      <div class="modal-section"><h3>8. Governing Law</h3><p>This disclaimer is governed by the laws of the Republic of South Africa. Any disputes shall be subject to the exclusive jurisdiction of the South African courts.</p></div>
+      <div class="modal-footer-text">Last Updated: February 2026 &nbsp;·&nbsp; © 2026 Sequoia Investment Solutions. All rights reserved.</div>
+    </div>
+    <div class="modal-footer">
+      <p>By clicking <strong>"I Acknowledge &amp; Accept"</strong> below, you confirm that you have read, understood, and agree to the terms of this disclaimer.</p>
+      <button class="btn btn-green btn-full" onclick="acceptDisclaimer()">I Acknowledge &amp; Accept</button>
+    </div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="wrap">
+  <div class="header"><h1>Sanction Screening</h1></div>
+  <div class="main">
+
+    <!-- Step 1 -->
+    <div class="card">
+      <div class="card-title"><div class="step-badge">1</div><h2>Upload UN Sanctions List</h2></div>
+      <p class="desc">Upload the UN Consolidated Sanctions List as a <strong>CSV</strong>, <strong>XLSX</strong>, or <strong>PDF</strong> file. The app will automatically use the <strong>"FullName"</strong> column for spreadsheets. PDF files will show a line preview for you to confirm the name entries.</p>
+      <div class="file-row">
+        <div class="file-label" id="unFileName">No reference file selected</div>
+        <button class="btn" onclick="document.getElementById('unFileInput').click()">Browse</button>
+        <input type="file" id="unFileInput" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleUnFile(this)">
+      </div>
+      <div class="success" id="unSuccess" style="display:none"></div>
+      <div id="unPdfPreview" style="display:none"></div>
+      <div class="col-picker" id="unColPicker" style="display:none">
+        <label id="unColLabel"></label>
+        <div class="col-btns" id="unColBtns"></div>
+      </div>
     </div>
 
-    <script>
-        let unListData = null;
-        let fileData = null;
-        let processingResults = null;
-        
-        // UN List selection
-        function selectUNList() {
-            document.getElementById('unListInput').click();
-        }
-        
-        document.getElementById('unListInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('unListLabel').textContent = file.name;
-                readExcelFile(file, 'reference');
-            }
-        });
-        
-        // File selection
-        function selectFile() {
-            document.getElementById('fileInput').click();
-        }
-        
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById('fileLabel').textContent = file.name;
-                readExcelFile(file, 'file');
-            }
-        });
-        
-        // Read Excel file
-        function readExcelFile(file, type) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    
-                    if (type === 'reference') {
-                        unListData = jsonData;
-                        document.getElementById('unListStatus').textContent = `✅ Reference data loaded: ${jsonData.length} records`;
-                        checkReadyState();
-                    } else {
-                        fileData = jsonData;
-                        checkReadyState();
-                    }
-                } catch (error) {
-                    console.error('Error reading file:', error);
-                    alert('Error reading file. Please ensure it\'s a valid Excel file.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        
-        // Check if ready to process
-        function checkReadyState() {
-            const compareBtn = document.getElementById('compareBtn');
-            if (unListData && fileData) {
-                compareBtn.disabled = false;
-                document.getElementById('statusText').textContent = 'Ready to process files';
-            }
-        }
-        
-        // Threshold slider
-        const thresholdSlider = document.getElementById('thresholdSlider');
-        const thresholdValue = document.getElementById('thresholdValue');
-        
-        thresholdSlider.addEventListener('input', function() {
-            thresholdValue.textContent = this.value + '%';
-        });
-        
-        // Normalize name function (JavaScript version of Python logic)
-        function normalizeName(name) {
-            if (!name) return "";
-            
-            let nameStr = String(name).trim().toLowerCase();
-            
-            // Remove common titles ONLY from the beginning (with and without periods)
-            const titles = ['mr ', 'mrs ', 'ms ', 'dr ', 'prof ', 'sir ', 'madam ', 'miss ', 'mx ', 
-                           'mr. ', 'mrs. ', 'ms. ', 'dr. ', 'prof. ', 'sir. ', 'madam. ', 'miss. ', 'mx. '];
-            for (const title of titles) {
-                if (nameStr.startsWith(title)) {
-                    nameStr = nameStr.substring(title.length);
-                    break;
-                }
-            }
-            
-            // Remove special characters and normalize whitespace
-            nameStr = nameStr.replace(/[^\w\s]/g, '');
-            nameStr = nameStr.replace(/\s+/g, ' ').trim();
-            
-            return nameStr;
-        }
-        
-        // Calculate similarity (exact same as Python - using token_set_ratio logic)
-        function calculateSimilarity(name1, name2) {
-            const norm1 = normalizeName(name1);
-            const norm2 = normalizeName(name2);
-            
-            if (!norm1 || !norm2) return 0;
-            
-            // Implement token_set_ratio logic (same as fuzzywuzzy)
-            return tokenSetRatio(norm1, norm2);
-        }
-        
-        // Token Set Ratio implementation (same as fuzzywuzzy)
-        function tokenSetRatio(s1, s2) {
-            const tokens1 = s1.split(/\s+/).filter(t => t.length > 0);
-            const tokens2 = s2.split(/\s+/).filter(t => t.length > 0);
-            
-            if (tokens1.length === 0 && tokens2.length === 0) return 100;
-            if (tokens1.length === 0 || tokens2.length === 0) return 0;
-            
-            // Create sets of unique tokens
-            const set1 = [...new Set(tokens1)];
-            const set2 = [...new Set(tokens2)];
-            
-            // Find intersection
-            const intersection = set1.filter(token => set2.includes(token));
-            
-            // Calculate scores for different combinations
-            const s1Sorted = [...set1].sort().join(' ');
-            const s2Sorted = [...set2].sort().join(' ');
-            
-            // Score 1: s1 vs s2
-            const score1 = simpleRatio(s1Sorted, s2Sorted);
-            
-            // Score 2: s1 vs intersection
-            if (intersection.length > 0) {
-                const intersectionSorted = [...intersection].sort().join(' ');
-                const score2 = simpleRatio(s1Sorted, intersectionSorted);
-                const score3 = simpleRatio(s2Sorted, intersectionSorted);
-                
-                return Math.max(score1, score2, score3);
-            }
-            
-            return score1;
-        }
-        
-        // Simple ratio (Levenshtein-based)
-        function simpleRatio(s1, s2) {
-            if (s1 === s2) return 100;
-            if (s1.length === 0) return 0;
-            if (s2.length === 0) return 0;
-            
-            const distance = levenshteinDistance(s1, s2);
-            const longer = Math.max(s1.length, s2.length);
-            return Math.round(((longer - distance) / longer) * 100);
-        }
-        
-        // Levenshtein distance
-        function levenshteinDistance(str1, str2) {
-            const matrix = [];
-            
-            for (let i = 0; i <= str2.length; i++) {
-                matrix[i] = [i];
-            }
-            
-            for (let j = 0; j <= str1.length; j++) {
-                matrix[0][j] = j;
-            }
-            
-            for (let i = 1; i <= str2.length; i++) {
-                for (let j = 1; j <= str1.length; j++) {
-                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            matrix[i][j - 1] + 1,
-                            matrix[i - 1][j] + 1
-                        );
-                    }
-                }
-            }
-            
-            return matrix[str2.length][str1.length];
-        }
-        
-        // Process files
-        function processFiles() {
-            if (!unListData || !fileData) {
-                alert('Please upload both UN_List and file to match');
-                return;
-            }
-            
-            const compareBtn = document.getElementById('compareBtn');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const progressFill = document.getElementById('progressFill');
-            const statusText = document.getElementById('statusText');
-            const resultsArea = document.getElementById('resultsArea');
-            
-            compareBtn.disabled = true;
-            downloadBtn.disabled = true;
-            statusText.textContent = 'Processing files...';
-            resultsArea.textContent = '';
-            
-            // Simulate progress
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += 5;
-                progressFill.style.width = progress + '%';
-                
-                if (progress >= 100) {
-                    clearInterval(progressInterval);
-                    
-                    // Perform real matching
-                    const results = performRealMatching();
-                    resultsArea.textContent = results.text;
-                    processingResults = results.data;
-                    
-                    downloadBtn.disabled = false;
-                    statusText.textContent = `Completed - ${results.data.highMatches.length} high matches, ${results.data.partialMatches.length} partial matches`;
-                    
-                    setTimeout(() => {
-                        progressFill.style.width = '0%';
-                        compareBtn.disabled = false;
-                    }, 1000);
-                }
-            }, 100);
-        }
-        
-        // Perform real matching
-        function performRealMatching() {
-            const threshold = parseInt(thresholdSlider.value);
-            const highMatches = [];
-            const partialMatches = [];
-            const onlyInUNList = [];
-            const onlyInFile = [];
-            
-            // Find name columns (use specific columns)
-            const unNameCol = 'FullName';
-            const fileNameCol = 'Client Name and Surname';
-            
-            if (!unNameCol || !fileNameCol) {
-                return {
-                    text: '❌ Error: Could not find name columns in uploaded files. Please ensure your files have name columns.',
-                    data: { highMatches: [], partialMatches: [], onlyInUNList: [], onlyInFile: [] }
-                };
-            }
-            
-            // Perform matching
-            const unNames = new Set();
-            const fileNames = new Set();
-            
-            // Collect all names
-            unListData.forEach(row => {
-                const name = String(row[unNameCol] || '').trim();
-                if (name) {
-                    unNames.add(name.toLowerCase());
-                }
-            });
-            
-            fileData.forEach(row => {
-                const name = String(row[fileNameCol] || '').trim();
-                if (name) {
-                    fileNames.add(name.toLowerCase());
-                }
-            });
-            
-            // Find matches
-            fileData.forEach(fileRow => {
-                const fileName = String(fileRow[fileNameCol] || '').trim();
-                if (!fileName) return;
-                
-                let bestMatch = null;
-                let bestScore = 0;
-                
-                unListData.forEach(unRow => {
-                    const unName = String(unRow[unNameCol] || '').trim();
-                    if (!unName) return;
-                    
-                    const score = calculateSimilarity(fileName, unName);
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestMatch = { unName, score, unRow };
-                    }
-                });
-                
-                if (bestMatch) {
-                    if (bestScore >= threshold) {
-                        highMatches.push({
-                            fileName,
-                            unName: bestMatch.unName,
-                            score: bestScore.toFixed(1),
-                            fileRow,
-                            unRow: bestMatch.unRow
-                        });
-                    } else if (bestScore >= 50) {
-                        partialMatches.push({
-                            fileName,
-                            unName: bestMatch.unName,
-                            score: bestScore.toFixed(1),
-                            fileRow,
-                            unRow: bestMatch.unRow
-                        });
-                    }
-                }
-            });
-            
-            // Generate results text
-            let resultsText = `🎯 High Matches (≥${threshold}%): ${highMatches.length}\n`;
-            resultsText += `🔍 Partial Matches (<${threshold}%): ${partialMatches.length}\n`;
-            resultsText += `📋 Total UN_List records: ${unListData.length}\n`;
-            resultsText += `📋 Total file records: ${fileData.length}\n\n`;
-            resultsText += `============================================================\n`;
-            resultsText += `✅ Processing completed successfully!\n\n`;
-            
-            if (highMatches.length > 0) {
-                resultsText += `🤝 HIGH CONFIDENCE MATCHES:\n`;
-                resultsText += `--------------------------------------------------\n`;
-                highMatches.slice(0, 15).forEach((match, index) => {
-                    resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\n`;
-                });
-                if (highMatches.length > 15) {
-                    resultsText += `... and ${highMatches.length - 15} more high matches\n`;
-                }
-                resultsText += `\n`;
-            }
-            
-            if (partialMatches.length > 0) {
-                resultsText += `🔍 PARTIAL MATCHES (Below ${threshold}% threshold):\n`;
-                resultsText += `--------------------------------------------------\n`;
-                partialMatches.slice(0, 8).forEach((match, index) => {
-                    resultsText += `${index + 1}. ${match.fileName} ↔ ${match.unName} (Score: ${match.score}%)\n`;
-                });
-                if (partialMatches.length > 8) {
-                    resultsText += `... and ${partialMatches.length - 8} more partial matches\n`;
-                }
-                resultsText += `\n`;
-            }
-            
-            resultsText += `============================================================`;
-            
-            return {
-                text: resultsText,
-                data: { highMatches, partialMatches, onlyInUNList, onlyInFile }
-            };
-        }
-        
-        // Find name column
-        function findNameColumn(columns, fileType) {
-            if (fileType === 'reference') {
-                // Look for "FullName" in reference data
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'fullname' || col.toLowerCase() === 'full_name') {
-                        return col;
-                    }
-                }
-                // Fallback to common name columns
-                const nameKeywords = ['name', 'full_name', 'fullname', 'person', 'individual'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
-                        }
-                    }
-                }
-            } else {
-                // Look for "Client Name" and "Surname" in file to match
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'client name' || col.toLowerCase() === 'client_name') {
-                        return col;
-                    }
-                }
-                for (const col of columns) {
-                    if (col.toLowerCase() === 'surname') {
-                        return col;
-                    }
-                }
-                // Fallback to common name columns
-                const nameKeywords = ['client name', 'surname', 'name', 'full_name', 'fullname', 'person', 'customer'];
-                for (const keyword of nameKeywords) {
-                    for (const col of columns) {
-                        if (col.toLowerCase().includes(keyword)) {
-                            return col;
-                        }
-                    }
-                }
-            }
-            
-            // Return first column as fallback
-            return columns[0];
-        }
-        
-        // Download results
-        function downloadResults() {
-            if (!processingResults) {
-                alert('No results to download');
-                return;
-            }
-            
-            // Create CSV content
-            let csvContent = "Type,File Name,UN List Name,Score (%)\n";
-            
-            processingResults.highMatches.forEach(match => {
-                csvContent += `High Match,"${match.fileName}","${match.unName}",${match.score}\n`;
-            });
-            
-            processingResults.partialMatches.forEach(match => {
-                csvContent += `Partial Match,"${match.fileName}","${match.unName}",${match.score}\n`;
-            });
-            
-            // Download CSV
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'sanction_screening_results_' + new Date().toISOString().slice(0,10) + '.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-    </script>
+    <!-- Step 2 -->
+    <div class="card">
+      <div class="card-title"><div class="step-badge">2</div><h2>Upload Client List to Screen</h2></div>
+      <p class="desc">Upload any <strong>CSV</strong>, <strong>XLSX</strong>, or <strong>PDF</strong> file containing your client names. For spreadsheets, select the column that contains the names after uploading. For PDFs, review the extracted lines and confirm which ones are names.</p>
+      <div class="file-row">
+        <div class="file-label" id="clientFileName">No file selected</div>
+        <button class="btn" onclick="document.getElementById('clientFileInput').click()">Browse</button>
+        <input type="file" id="clientFileInput" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleClientFile(this)">
+      </div>
+      <div class="success" id="clientSuccess" style="display:none"></div>
+      <div id="clientPdfPreview" style="display:none"></div>
+      <div class="force-pick" id="clientForcePick" style="display:none">
+        <p>Select the column containing client names:</p>
+        <div class="col-btns" id="clientForcePickBtns"></div>
+      </div>
+      <div class="col-picker" id="clientColPicker" style="display:none">
+        <label id="clientColLabel"></label>
+        <div class="col-btns" id="clientColBtns"></div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="card">
+      <div class="card-title"><div class="step-badge">3</div><h2>Configure &amp; Run</h2></div>
+      <p class="desc">Set your match threshold — names scoring at or above this percentage will be flagged as <strong>High Matches</strong>. Lower the threshold to catch more potential matches; raise it for stricter results.</p>
+      <div class="threshold-row">
+        <span>Match Threshold:</span>
+        <input type="range" id="thresholdSlider" min="50" max="100" value="80" oninput="document.getElementById('thresholdVal').textContent=this.value+'%'">
+        <div class="threshold-val" id="thresholdVal">80%</div>
+      </div>
+    </div>
+
+    <button class="btn btn-center" id="compareBtn" onclick="runScreening()" disabled>Compare Names</button>
+
+    <div class="progress-bar" style="margin-top:15px"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="status" id="statusText">Ready to process files</div>
+
+    <button class="btn btn-center" id="downloadBtn" onclick="downloadXLSX()" disabled style="margin-bottom:20px">Download Results</button>
+
+    <!-- Results -->
+    <div class="card">
+      <div class="card-title"><div class="step-badge">4</div><h2>Results</h2></div>
+      <div id="resultsArea"><div class="placeholder">Results will appear here after processing...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let unRows = [], unCol = "FullName", unHeaders = [];
+let clientRows = [], clientCol = null, clientHeaders = [];
+let clientPdfNames = [];
+let screeningResults = null;
+
+// ─── Disclaimer ──────────────────────────────────────────
+function acceptDisclaimer() {
+  document.getElementById("disclaimerModal").style.display = "none";
+}
+
+// ─── Normalise / Matching ────────────────────────────────
+const TITLE_RE = /^(mr\.?\s+|mrs\.?\s+|ms\.?\s+|miss\.?\s+|dr\.?\s+|prof\.?\s+|sir\.?\s+|madam\.?\s+|mx\.?\s+|rev\.?\s+|hon\.?\s+|lord\.?\s+|lady\.?\s+)/i;
+
+function normalizeName(n) {
+  if (!n) return "";
+  return String(n).trim().toLowerCase().replace(TITLE_RE,"").replace(/[^\w\s]/g,"").replace(/\s+/g," ").trim();
+}
+
+function levenshtein(a, b) {
+  const m = [], la = a.length, lb = b.length;
+  for (let i = 0; i <= lb; i++) m[i] = [i];
+  for (let j = 0; j <= la; j++) m[0][j] = j;
+  for (let i = 1; i <= lb; i++)
+    for (let j = 1; j <= la; j++)
+      m[i][j] = b[i-1]===a[j-1] ? m[i-1][j-1] : Math.min(m[i-1][j-1]+1,m[i][j-1]+1,m[i-1][j]+1);
+  return m[lb][la];
+}
+
+function simpleRatio(a, b) {
+  if (a===b) return 100;
+  if (!a.length||!b.length) return 0;
+  const longer = Math.max(a.length, b.length);
+  return Math.round(((longer - levenshtein(a,b)) / longer) * 100);
+}
+
+function tokenSetRatio(s1, s2) {
+  const t1=[...new Set(s1.split(/\s+/).filter(Boolean))];
+  const t2=[...new Set(s2.split(/\s+/).filter(Boolean))];
+  if (!t1.length&&!t2.length) return 100;
+  if (!t1.length||!t2.length) return 0;
+  const s1s=[...t1].sort().join(" "), s2s=[...t2].sort().join(" ");
+  const inter=t1.filter(t=>t2.includes(t));
+  const base=simpleRatio(s1s,s2s);
+  if (!inter.length) return base;
+  const si=[...inter].sort().join(" ");
+  return Math.max(base,simpleRatio(s1s,si),simpleRatio(s2s,si));
+}
+
+function matchScore(a, b) { return tokenSetRatio(normalizeName(a), normalizeName(b)); }
+
+// ─── File Reading ────────────────────────────────────────
+function readStructured(file, cb) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (ext==="csv"||ext==="txt") {
+    Papa.parse(file, { header:true, skipEmptyLines:true, dynamicTyping:false,
+      complete: ({data}) => cb(data.map(r=>{ const o={}; Object.keys(r).forEach(k=>o[k.trim()]=r[k]); return o; }))
+    });
+  } else {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), {type:"array"});
+      cb(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""}));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+async function readPdf(file) {
+  if (!window.pdfjsLib) {
+    await new Promise((res,rej)=>{
+      const s=document.createElement("script");
+      s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      s.onload=()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; res(); };
+      s.onerror=rej; document.head.appendChild(s);
+    });
+  }
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+  const lines = [];
+  for (let i=1;i<=pdf.numPages;i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const byY = {};
+    content.items.forEach(item=>{ const y=Math.round(item.transform[5]); if(!byY[y]) byY[y]=[]; byY[y].push(item.str); });
+    Object.keys(byY).sort((a,b)=>b-a).forEach(y=>{ const l=byY[y].join(" ").trim(); if(l) lines.push(l); });
+  }
+  return lines;
+}
+
+// ─── UN File ─────────────────────────────────────────────
+async function handleUnFile(input) {
+  const file = input.files[0]; if (!file) return;
+  document.getElementById("unFileName").textContent = file.name;
+  document.getElementById("unSuccess").style.display = "none";
+  document.getElementById("unPdfPreview").style.display = "none";
+  document.getElementById("unColPicker").style.display = "none";
+  unRows=[]; unHeaders=[];
+
+  if (file.name.toLowerCase().endsWith(".pdf")) {
+    setStatus("Extracting text from PDF...");
+    try {
+      const lines = await readPdf(file);
+      showPdfPreview("unPdfPreview", lines, (selected)=>{
+        unRows = selected.map(l=>({[unCol]:l}));
+        unHeaders = [unCol];
+        showUnSuccess();
+        checkReady();
+      }, ()=>{ document.getElementById("unFileName").textContent="No reference file selected"; });
+    } catch { setStatus("Failed to extract PDF text. It may be a scanned image."); }
+  } else {
+    readStructured(file, rows=>{
+      const headers = rows.length ? Object.keys(rows[0]) : [];
+      unHeaders = headers;
+      const col = headers.includes("FullName") ? "FullName" : headers[0];
+      unCol = col;
+      applyUnRows(rows, col);
+    });
+  }
+  input.value="";
+}
+
+function applyUnRows(rows, col) {
+  unCol = col;
+  const seen = new Set();
+  unRows = rows.filter(r=>{ const n=String(r[col]||"").trim().toLowerCase(); if(!n||seen.has(n)) return false; seen.add(n); return true; });
+  showUnSuccess();
+  renderUnColPicker(unHeaders, col);
+  checkReady();
+}
+
+function showUnSuccess() {
+  const el = document.getElementById("unSuccess");
+  el.textContent = `✅ ${unRows.length.toLocaleString()} records loaded`;
+  el.style.display = "block";
+  setStatus("Ready to process files");
+}
+
+function renderUnColPicker(headers, selected) {
+  if (headers.length <= 1) { document.getElementById("unColPicker").style.display="none"; return; }
+  document.getElementById("unColLabel").textContent = `Name column — currently: "${selected}"`;
+  const container = document.getElementById("unColBtns");
+  container.innerHTML="";
+  headers.forEach(h=>{
+    const b=document.createElement("button");
+    b.className="col-btn"+(h===selected?" active":"");
+    b.textContent=(h===selected?"✓ ":"")+h;
+    b.onclick=()=>applyUnRows(unRows.length ? unRows.map(r=>({...r})) : [], h);
+    container.appendChild(b);
+  });
+  document.getElementById("unColPicker").style.display="block";
+}
+
+// ─── Client File ──────────────────────────────────────────
+async function handleClientFile(input) {
+  const file = input.files[0]; if (!file) return;
+  document.getElementById("clientFileName").textContent = file.name;
+  document.getElementById("clientSuccess").style.display="none";
+  document.getElementById("clientPdfPreview").style.display="none";
+  document.getElementById("clientForcePick").style.display="none";
+  document.getElementById("clientColPicker").style.display="none";
+  clientRows=[]; clientHeaders=[]; clientCol=null; clientPdfNames=[];
+
+  if (file.name.toLowerCase().endsWith(".pdf")) {
+    setStatus("Extracting text from PDF...");
+    try {
+      const lines = await readPdf(file);
+      showPdfPreview("clientPdfPreview", lines, (selected)=>{
+        clientPdfNames = selected;
+        const el=document.getElementById("clientSuccess");
+        el.textContent=`✅ ${selected.length} names loaded from PDF`;
+        el.style.display="block";
+        setStatus("Ready to process files");
+        checkReady();
+      }, ()=>{ document.getElementById("clientFileName").textContent="No file selected"; });
+    } catch { setStatus("Failed to extract PDF text. It may be a scanned image."); }
+  } else {
+    readStructured(file, rows=>{
+      clientRows = rows;
+      clientHeaders = rows.length ? Object.keys(rows[0]) : [];
+      showForcePick();
+    });
+  }
+  input.value="";
+}
+
+function showForcePick() {
+  const container = document.getElementById("clientForcePickBtns");
+  container.innerHTML="";
+  clientHeaders.forEach(h=>{
+    const b=document.createElement("button");
+    b.className="col-btn"; b.textContent=h;
+    b.onclick=()=>applyClientCol(h);
+    container.appendChild(b);
+  });
+  document.getElementById("clientForcePick").style.display="block";
+}
+
+function applyClientCol(col) {
+  clientCol = col;
+  document.getElementById("clientForcePick").style.display="none";
+  const el=document.getElementById("clientSuccess");
+  el.textContent=`✅ ${clientRows.length} records loaded (column: "${col}")`;
+  el.style.display="block";
+  renderClientColPicker(clientHeaders, col);
+  setStatus("Ready to process files");
+  checkReady();
+}
+
+function renderClientColPicker(headers, selected) {
+  document.getElementById("clientColLabel").textContent=`Name column — currently: "${selected}"`;
+  const container=document.getElementById("clientColBtns");
+  container.innerHTML="";
+  headers.forEach(h=>{
+    const b=document.createElement("button");
+    b.className="col-btn"+(h===selected?" active":"");
+    b.textContent=(h===selected?"✓ ":"")+h;
+    b.onclick=()=>applyClientCol(h);
+    container.appendChild(b);
+  });
+  document.getElementById("clientColPicker").style.display="block";
+}
+
+// ─── PDF Preview ──────────────────────────────────────────
+function showPdfPreview(containerId, lines, onConfirm, onCancel) {
+  const container = document.getElementById(containerId);
+  const selected = new Set(lines.map((_,i)=>i));
+
+  const render = () => {
+    container.innerHTML=`
+      <div class="pdf-preview">
+        <h3>PDF Preview — Select lines that are names</h3>
+        <p>${selected.size} of ${lines.length} lines selected. Uncheck any lines that are not names.</p>
+        <div class="pdf-actions">
+          <button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfSelectAll_${containerId}()">Select All</button>
+          <button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfClearAll_${containerId}()">Clear All</button>
+        </div>
+        <div class="pdf-lines" id="${containerId}_lines"></div>
+        <div class="pdf-confirm-row">
+          <button class="btn btn-green" style="font-size:13px;padding:8px 18px" ${selected.size===0?"disabled":""} onclick="pdfConfirm_${containerId}()">Use Selected Lines (${selected.size})</button>
+          <button class="btn-cancel" onclick="pdfCancel_${containerId}()">Cancel</button>
+        </div>
+      </div>`;
+    const linesDiv = document.getElementById(`${containerId}_lines`);
+    lines.forEach((line,i)=>{
+      const div=document.createElement("div");
+      div.className="pdf-line"+(selected.has(i)?" checked":"");
+      div.innerHTML=`<div class="pdf-checkbox ${selected.has(i)?"on":""}">${selected.has(i)?"✓":""}</div><span class="pdf-line-text">${line}</span>`;
+      div.onclick=()=>{ selected.has(i)?selected.delete(i):selected.add(i); render(); };
+      linesDiv.appendChild(div);
+    });
+  };
+
+  window[`pdfSelectAll_${containerId}`]=()=>{ lines.forEach((_,i)=>selected.add(i)); render(); };
+  window[`pdfClearAll_${containerId}`]=()=>{ selected.clear(); render(); };
+  window[`pdfConfirm_${containerId}`]=()=>{ container.style.display="none"; onConfirm(lines.filter((_,i)=>selected.has(i))); };
+  window[`pdfCancel_${containerId}`]=()=>{ container.style.display="none"; onCancel(); };
+
+  container.style.display="block";
+  render();
+  setStatus(`PDF loaded — ${lines.length} lines found. Review and confirm below.`);
+}
+
+// ─── Ready check ──────────────────────────────────────────
+function checkReady() {
+  const clientReady = clientPdfNames.length>0 || (clientCol && clientRows.length>0);
+  document.getElementById("compareBtn").disabled = !(unRows.length>0 && clientReady);
+}
+
+function setStatus(msg) { document.getElementById("statusText").textContent=msg; }
+
+// ─── Screening ────────────────────────────────────────────
+function runScreening() {
+  const threshold = parseInt(document.getElementById("thresholdSlider").value);
+  setStatus("Processing files...");
+  document.getElementById("compareBtn").disabled=true;
+  document.getElementById("downloadBtn").disabled=true;
+
+  let p=0;
+  const interval=setInterval(()=>{ p=Math.min(p+4,90); document.getElementById("progressFill").style.width=p+"%"; },80);
+
+  setTimeout(()=>{
+    clearInterval(interval);
+    // Dedupe sanctions
+    const sanctionMap=new Map();
+    unRows.forEach(r=>{ const n=String(r[unCol]||"").trim(); if(!n) return; const k=normalizeName(n); if(!sanctionMap.has(k)) sanctionMap.set(k,n); });
+    const sanctions=[...sanctionMap.values()];
+
+    // Dedupe clients
+    const seenClients=new Set();
+    const names = clientPdfNames.length>0 ? clientPdfNames : clientRows.map(r=>String(r[clientCol]||"").trim()).filter(Boolean);
+    const clients=names.filter(n=>{ const k=normalizeName(n); if(!k||seenClients.has(k)) return false; seenClients.add(k); return true; });
+
+    const high=[], partial=[];
+    clients.forEach(name=>{
+      let best=0, bestName="";
+      sanctions.forEach(sn=>{ const s=matchScore(name,sn); if(s>best){best=s;bestName=sn;} });
+      const entry={clientName:name, matchedName:bestName, score:best};
+      if(best>=threshold) high.push(entry);
+      else if(best>=50) partial.push(entry);
+    });
+
+    high.sort((a,b)=>b.score-a.score);
+    partial.sort((a,b)=>b.score-a.score);
+    screeningResults={high,partial,threshold,totalUN:sanctions.length,totalClients:clients.length};
+
+    document.getElementById("progressFill").style.width="100%";
+    setStatus(`Completed — ${high.length} high matches, ${partial.length} partial matches`);
+    document.getElementById("compareBtn").disabled=false;
+    document.getElementById("downloadBtn").disabled=false;
+    renderResults(screeningResults);
+    setTimeout(()=>document.getElementById("progressFill").style.width="0%",1000);
+  },200);
+}
+
+function riskColor(score, threshold) {
+  return score>=threshold?"#27ae60":score>=70?"#f39c12":"#ff6b6b";
+}
+
+function renderResults({high,partial,threshold,totalUN,totalClients}) {
+  const all=[...high,...partial];
+  let html=`
+    <div class="summary-grid">
+      <div class="summary-box"><div class="summary-num" style="color:#27ae60">${high.length}</div><div class="summary-lbl">High Matches</div></div>
+      <div class="summary-box"><div class="summary-num" style="color:#f39c12">${partial.length}</div><div class="summary-lbl">Partial Matches</div></div>
+      <div class="summary-box"><div class="summary-num" style="color:#fff">${totalUN.toLocaleString()}</div><div class="summary-lbl">UN Records</div></div>
+      <div class="summary-box"><div class="summary-num" style="color:#fff">${totalClients}</div><div class="summary-lbl">Clients Screened</div></div>
+    </div>
+    <div class="results-table-wrap"><table>
+      <thead><tr><th>Type</th><th>Client Name</th><th>Best UN Match</th><th>Score</th></tr></thead>
+      <tbody>`;
+
+  if (!all.length) {
+    html+=`<tr><td colspan="4" class="no-results">No matches found above 50%</td></tr>`;
+  } else {
+    all.forEach(r=>{
+      const isHigh=r.score>=threshold;
+      const color=riskColor(r.score,threshold);
+      html+=`<tr>
+        <td><span class="${isHigh?"badge-high":"badge-partial"}">${isHigh?"✅ HIGH":"🔍 PARTIAL"}</span></td>
+        <td style="font-weight:500">${r.clientName}</td>
+        <td style="color:#333">${r.matchedName}</td>
+        <td><div class="score-bar-wrap">
+          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${r.score}%;background:${color}"></div></div>
+          <span class="score-val" style="color:${color}">${r.score}%</span>
+        </div></td>
+      </tr>`;
+    });
+  }
+  html+=`</tbody></table></div>`;
+  document.getElementById("resultsArea").innerHTML=html;
+}
+
+// ─── Download XLSX ────────────────────────────────────────
+function downloadXLSX() {
+  if (!screeningResults) return;
+  const rows=[["Type","Client Name","UN List Name","Score (%)"]];
+  screeningResults.high.forEach(r=>rows.push(["High Match",r.clientName,r.matchedName,r.score]));
+  screeningResults.partial.forEach(r=>rows.push(["Partial Match",r.clientName,r.matchedName,r.score]));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Screening Results");
+  XLSX.writeFile(wb,`sanction_screening_results_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+</script>
 </body>
 </html>
