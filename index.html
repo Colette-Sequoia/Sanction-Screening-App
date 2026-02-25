@@ -518,21 +518,60 @@
                 return nameStr;
             }
             
-            // Calculate similarity (exact same as Python)
+            // Calculate similarity (exact same as Python - using token_set_ratio logic)
             function calculateSimilarity(name1, name2) {
                 const norm1 = normalizeName(name1);
                 const norm2 = normalizeName(name2);
                 
                 if (!norm1 || !norm2) return 0;
                 
-                // Levenshtein distance
-                const longer = norm1.length > norm2.length ? norm1 : norm2;
-                const shorter = norm1.length > norm2.length ? norm2 : norm1;
+                // Implement token_set_ratio logic (same as fuzzywuzzy)
+                return tokenSetRatio(norm1, norm2);
+            }
+            
+            // Token Set Ratio implementation (same as fuzzywuzzy)
+            function tokenSetRatio(s1, s2) {
+                const tokens1 = s1.split(/\s+/).filter(t => t.length > 0);
+                const tokens2 = s2.split(/\s+/).filter(t => t.length > 0);
                 
-                if (longer.length === 0) return 100.0;
+                if (tokens1.length === 0 && tokens2.length === 0) return 100;
+                if (tokens1.length === 0 || tokens2.length === 0) return 0;
                 
-                const distance = levenshteinDistance(longer, shorter);
-                return ((longer.length - distance) / longer.length) * 100;
+                // Create sets of unique tokens
+                const set1 = [...new Set(tokens1)];
+                const set2 = [...new Set(tokens2)];
+                
+                // Find intersection
+                const intersection = set1.filter(token => set2.includes(token));
+                
+                // Calculate scores for different combinations
+                const s1Sorted = [...set1].sort().join(' ');
+                const s2Sorted = [...set2].sort().join(' ');
+                
+                // Score 1: s1 vs s2
+                const score1 = simpleRatio(s1Sorted, s2Sorted);
+                
+                // Score 2: s1 vs intersection
+                if (intersection.length > 0) {
+                    const intersectionSorted = [...intersection].sort().join(' ');
+                    const score2 = simpleRatio(s1Sorted, intersectionSorted);
+                    const score3 = simpleRatio(s2Sorted, intersectionSorted);
+                    
+                    return Math.max(score1, score2, score3);
+                }
+                
+                return score1;
+            }
+            
+            // Simple ratio (Levenshtein-based)
+            function simpleRatio(s1, s2) {
+                if (s1 === s2) return 100;
+                if (s1.length === 0) return 0;
+                if (s2.length === 0) return 0;
+                
+                const distance = levenshteinDistance(s1, s2);
+                const longer = Math.max(s1.length, s2.length);
+                return Math.round(((longer - distance) / longer) * 100);
             }
             
             // Levenshtein distance implementation
