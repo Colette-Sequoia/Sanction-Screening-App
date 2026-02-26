@@ -9,10 +9,11 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:Arial,sans-serif;background:#444647;color:#fff;padding:20px;min-height:100vh;}
-  .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:12px;overflow:hidden;}
+  .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
   .header{background:#05263B;padding:20px;text-align:center;border-bottom:2px solid #073855;}
   .header h1{font-size:28px;font-weight:bold;color:#fff;}
-  .main{padding:20px;}
+  .main{padding:20px;flex:1;}
+  .footer-bar{text-align:center;padding:14px 20px;font-size:12px;color:#b0c4d8;background:#073855;border-top:2px solid #05263B;}
   .card{background:#073855;border:2px solid #05263B;border-radius:8px;padding:20px;margin-bottom:20px;}
   .card-title{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
   .step-badge{background:#fff;color:#05263B;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
@@ -25,7 +26,6 @@
   .btn:disabled{background:#ccc;color:#999;cursor:not-allowed;}
   .btn-green{background:#27ae60;color:#fff;}
   .btn-green:hover{background:#219a52;}
-  .btn-full{width:100%;padding:12px 25px;font-size:14px;display:block;margin:0 auto;}
   .btn-center{padding:12px 25px;font-size:14px;display:block;margin:0 auto;}
   .success{font-size:12px;color:#27ae60;margin-bottom:6px;}
   .col-picker{margin-top:12px;padding:12px 14px;background:#05263B;border-radius:6px;}
@@ -60,8 +60,6 @@
   .score-val{font-weight:700;min-width:36px;}
   .no-results{padding:20px;text-align:center;color:#666;}
   .placeholder{background:#fff;color:#05263B;border-radius:6px;padding:15px;min-height:200px;font-family:monospace;font-size:12px;}
-
-  /* PDF Preview */
   .pdf-preview{margin-top:14px;background:#05263B;border-radius:8px;padding:16px;}
   .pdf-preview h3{font-size:14px;font-weight:bold;margin-bottom:6px;}
   .pdf-preview p{font-size:12px;color:#b0c4d8;margin-bottom:10px;}
@@ -77,8 +75,6 @@
   .pdf-line:not(.checked) .pdf-line-text{color:#888;}
   .pdf-confirm-row{display:flex;gap:8px;}
   .btn-cancel{background:transparent;border:1px solid #555;color:#aaa;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;}
-
-  /* Disclaimer Modal */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
   .modal{background:#05263B;border:2px solid #073855;border-radius:12px;max-width:680px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
   .modal-header{background:#073855;padding:18px 24px;border-bottom:2px solid #05263B;flex-shrink:0;}
@@ -88,14 +84,14 @@
   .modal-section{margin-bottom:16px;}
   .modal-section h3{font-weight:bold;font-size:13px;color:#fff;margin-bottom:4px;}
   .modal-section p{font-size:12.5px;color:#b0c4d8;line-height:1.65;}
-  .modal-footer-text{font-size:11.5px;color:#7a95a8;border-top:1px solid #073855;padding-top:12px;margin-top:4px;}
+  .modal-foot-text{font-size:11.5px;color:#7a95a8;border-top:1px solid #073855;padding-top:12px;margin-top:4px;}
   .modal-footer{background:#073855;padding:16px 24px;border-top:2px solid #05263B;flex-shrink:0;}
   .modal-footer p{font-size:12px;color:#b0c4d8;margin-bottom:12px;}
 </style>
 </head>
 <body>
 
-<!-- Disclaimer Modal -->
+<!-- ── Disclaimer Modal ── -->
 <div class="modal-overlay" id="disclaimerModal">
   <div class="modal">
     <div class="modal-header">
@@ -111,18 +107,23 @@
       <div class="modal-section"><h3>6. User Responsibility</h3><p>By acknowledging this disclaimer, you confirm that you are an authorised user, that you will not make compliance or business decisions based solely on the output of this App without independent verification, and that you accept full responsibility for any decisions or actions taken based on the App's results.</p></div>
       <div class="modal-section"><h3>7. Data Privacy (POPIA)</h3><p>All client data uploaded must be handled in accordance with the Protection of Personal Information Act 4 of 2013 (POPIA). All processing occurs locally within your browser session. Sequoia Investment Solutions does not store, transmit, or have access to any data uploaded through this App.</p></div>
       <div class="modal-section"><h3>8. Governing Law</h3><p>This disclaimer is governed by the laws of the Republic of South Africa. Any disputes shall be subject to the exclusive jurisdiction of the South African courts.</p></div>
-      <div class="modal-footer-text">Last Updated: February 2026 &nbsp;·&nbsp; © 2026 Sequoia Investment Solutions. All rights reserved.</div>
+      <div class="modal-foot-text">Sequoia Investment Solutions is an authorised Financial Services Provider, FSP No.: 49393.</div>
+      <div class="modal-foot-text" style="margin-top:6px">Last Updated: February 2026 &nbsp;·&nbsp; © 2026 Sequoia Investment Solutions. All rights reserved.</div>
     </div>
     <div class="modal-footer">
       <p>By clicking <strong>"I Acknowledge &amp; Accept"</strong> below, you confirm that you have read, understood, and agree to the terms of this disclaimer.</p>
-      <button class="btn btn-green btn-full" onclick="acceptDisclaimer()">I Acknowledge &amp; Accept</button>
+      <button class="btn btn-green" style="width:100%;padding:12px 25px;font-size:14px;" onclick="acceptDisclaimer()">I Acknowledge &amp; Accept</button>
     </div>
   </div>
 </div>
 
-<!-- App -->
+<!-- ── App ── -->
 <div class="wrap">
-  <div class="header"><h1>Sanction Screening</h1></div>
+
+  <div class="header">
+    <h1>Sanction Screening</h1>
+  </div>
+
   <div class="main">
 
     <!-- Step 1 -->
@@ -135,7 +136,7 @@
         <input type="file" id="unFileInput" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleUnFile(this)">
       </div>
       <div class="success" id="unSuccess" style="display:none"></div>
-      <div id="unPdfPreview" style="display:none"></div>
+      <div id="unPdfPreview"></div>
       <div class="col-picker" id="unColPicker" style="display:none">
         <label id="unColLabel"></label>
         <div class="col-btns" id="unColBtns"></div>
@@ -152,7 +153,7 @@
         <input type="file" id="clientFileInput" accept=".xlsx,.xls,.csv,.pdf" style="display:none" onchange="handleClientFile(this)">
       </div>
       <div class="success" id="clientSuccess" style="display:none"></div>
-      <div id="clientPdfPreview" style="display:none"></div>
+      <div id="clientPdfPreview"></div>
       <div class="force-pick" id="clientForcePick" style="display:none">
         <p>Select the column containing client names:</p>
         <div class="col-btns" id="clientForcePickBtns"></div>
@@ -174,329 +175,164 @@
       </div>
     </div>
 
-    <button class="btn btn-center" id="compareBtn" onclick="runScreening()" disabled>Compare Names</button>
+    <button class="btn btn-center" id="compareBtn" onclick="runScreening()" disabled style="margin-bottom:15px">Compare Names</button>
 
-    <div class="progress-bar" style="margin-top:15px"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="status" id="statusText">Ready to process files</div>
 
     <button class="btn btn-center" id="downloadBtn" onclick="downloadXLSX()" disabled style="margin-bottom:20px">Download Results</button>
 
-    <!-- Results -->
+    <!-- Step 4 Results -->
     <div class="card">
       <div class="card-title"><div class="step-badge">4</div><h2>Results</h2></div>
       <div id="resultsArea"><div class="placeholder">Results will appear here after processing...</div></div>
     </div>
 
+  </div><!-- end .main -->
+
+  <div class="footer-bar">
+    Sequoia Investment Solutions is an authorised Financial Services Provider, FSP No.: 49393.
   </div>
-</div>
+
+</div><!-- end .wrap -->
 
 <script>
-// ─── State ───────────────────────────────────────────────
-let unRows = [], unCol = "FullName", unHeaders = [];
-let clientRows = [], clientCol = null, clientHeaders = [];
-let clientPdfNames = [];
-let screeningResults = null;
+let unRows=[], unCol="FullName", unHeaders=[];
+let clientRows=[], clientCol=null, clientHeaders=[];
+let clientPdfNames=[];
+let screeningResults=null;
 
-// ─── Disclaimer ──────────────────────────────────────────
-function acceptDisclaimer() {
-  document.getElementById("disclaimerModal").style.display = "none";
+function acceptDisclaimer(){
+  document.getElementById("disclaimerModal").style.display="none";
 }
 
-// ─── Normalise / Matching ────────────────────────────────
-const TITLE_RE = /^(mr\.?\s+|mrs\.?\s+|ms\.?\s+|miss\.?\s+|dr\.?\s+|prof\.?\s+|sir\.?\s+|madam\.?\s+|mx\.?\s+|rev\.?\s+|hon\.?\s+|lord\.?\s+|lady\.?\s+)/i;
+const TITLE_RE=/^(mr\.?\s+|mrs\.?\s+|ms\.?\s+|miss\.?\s+|dr\.?\s+|prof\.?\s+|sir\.?\s+|madam\.?\s+|mx\.?\s+|rev\.?\s+|hon\.?\s+|lord\.?\s+|lady\.?\s+)/i;
+function normalizeName(n){if(!n)return"";return String(n).trim().toLowerCase().replace(TITLE_RE,"").replace(/[^\w\s]/g,"").replace(/\s+/g," ").trim();}
+function levenshtein(a,b){const m=[],la=a.length,lb=b.length;for(let i=0;i<=lb;i++)m[i]=[i];for(let j=0;j<=la;j++)m[0][j]=j;for(let i=1;i<=lb;i++)for(let j=1;j<=la;j++)m[i][j]=b[i-1]===a[j-1]?m[i-1][j-1]:Math.min(m[i-1][j-1]+1,m[i][j-1]+1,m[i-1][j]+1);return m[lb][la];}
+function simpleRatio(a,b){if(a===b)return 100;if(!a.length||!b.length)return 0;const l=Math.max(a.length,b.length);return Math.round(((l-levenshtein(a,b))/l)*100);}
+function tokenSetRatio(s1,s2){const t1=[...new Set(s1.split(/\s+/).filter(Boolean))];const t2=[...new Set(s2.split(/\s+/).filter(Boolean))];if(!t1.length&&!t2.length)return 100;if(!t1.length||!t2.length)return 0;const s1s=[...t1].sort().join(" "),s2s=[...t2].sort().join(" ");const inter=t1.filter(t=>t2.includes(t));const base=simpleRatio(s1s,s2s);if(!inter.length)return base;const si=[...inter].sort().join(" ");return Math.max(base,simpleRatio(s1s,si),simpleRatio(s2s,si));}
+function matchScore(a,b){return tokenSetRatio(normalizeName(a),normalizeName(b));}
 
-function normalizeName(n) {
-  if (!n) return "";
-  return String(n).trim().toLowerCase().replace(TITLE_RE,"").replace(/[^\w\s]/g,"").replace(/\s+/g," ").trim();
+function readStructured(file,cb){
+  const ext=file.name.split(".").pop().toLowerCase();
+  if(ext==="csv"||ext==="txt"){Papa.parse(file,{header:true,skipEmptyLines:true,dynamicTyping:false,complete:({data})=>cb(data.map(r=>{const o={};Object.keys(r).forEach(k=>o[k.trim()]=r[k]);return o;}))});}
+  else{const reader=new FileReader();reader.onload=ev=>{const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});cb(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""}));};reader.readAsArrayBuffer(file);}
 }
 
-function levenshtein(a, b) {
-  const m = [], la = a.length, lb = b.length;
-  for (let i = 0; i <= lb; i++) m[i] = [i];
-  for (let j = 0; j <= la; j++) m[0][j] = j;
-  for (let i = 1; i <= lb; i++)
-    for (let j = 1; j <= la; j++)
-      m[i][j] = b[i-1]===a[j-1] ? m[i-1][j-1] : Math.min(m[i-1][j-1]+1,m[i][j-1]+1,m[i-1][j]+1);
-  return m[lb][la];
-}
-
-function simpleRatio(a, b) {
-  if (a===b) return 100;
-  if (!a.length||!b.length) return 0;
-  const longer = Math.max(a.length, b.length);
-  return Math.round(((longer - levenshtein(a,b)) / longer) * 100);
-}
-
-function tokenSetRatio(s1, s2) {
-  const t1=[...new Set(s1.split(/\s+/).filter(Boolean))];
-  const t2=[...new Set(s2.split(/\s+/).filter(Boolean))];
-  if (!t1.length&&!t2.length) return 100;
-  if (!t1.length||!t2.length) return 0;
-  const s1s=[...t1].sort().join(" "), s2s=[...t2].sort().join(" ");
-  const inter=t1.filter(t=>t2.includes(t));
-  const base=simpleRatio(s1s,s2s);
-  if (!inter.length) return base;
-  const si=[...inter].sort().join(" ");
-  return Math.max(base,simpleRatio(s1s,si),simpleRatio(s2s,si));
-}
-
-function matchScore(a, b) { return tokenSetRatio(normalizeName(a), normalizeName(b)); }
-
-// ─── File Reading ────────────────────────────────────────
-function readStructured(file, cb) {
-  const ext = file.name.split(".").pop().toLowerCase();
-  if (ext==="csv"||ext==="txt") {
-    Papa.parse(file, { header:true, skipEmptyLines:true, dynamicTyping:false,
-      complete: ({data}) => cb(data.map(r=>{ const o={}; Object.keys(r).forEach(k=>o[k.trim()]=r[k]); return o; }))
-    });
-  } else {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const wb = XLSX.read(new Uint8Array(ev.target.result), {type:"array"});
-      cb(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:""}));
-    };
-    reader.readAsArrayBuffer(file);
-  }
-}
-
-async function readPdf(file) {
-  if (!window.pdfjsLib) {
-    await new Promise((res,rej)=>{
-      const s=document.createElement("script");
-      s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-      s.onload=()=>{ window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; res(); };
-      s.onerror=rej; document.head.appendChild(s);
-    });
-  }
-  const buf = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data:buf}).promise;
-  const lines = [];
-  for (let i=1;i<=pdf.numPages;i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const byY = {};
-    content.items.forEach(item=>{ const y=Math.round(item.transform[5]); if(!byY[y]) byY[y]=[]; byY[y].push(item.str); });
-    Object.keys(byY).sort((a,b)=>b-a).forEach(y=>{ const l=byY[y].join(" ").trim(); if(l) lines.push(l); });
-  }
+async function readPdf(file){
+  if(!window.pdfjsLib){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";res();};s.onerror=rej;document.head.appendChild(s);});}
+  const buf=await file.arrayBuffer();const pdf=await pdfjsLib.getDocument({data:buf}).promise;const lines=[];
+  for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const content=await page.getTextContent();const byY={};content.items.forEach(item=>{const y=Math.round(item.transform[5]);if(!byY[y])byY[y]=[];byY[y].push(item.str);});Object.keys(byY).sort((a,b)=>b-a).forEach(y=>{const l=byY[y].join(" ").trim();if(l)lines.push(l);});}
   return lines;
 }
 
-// ─── UN File ─────────────────────────────────────────────
-async function handleUnFile(input) {
-  const file = input.files[0]; if (!file) return;
-  document.getElementById("unFileName").textContent = file.name;
-  document.getElementById("unSuccess").style.display = "none";
-  document.getElementById("unPdfPreview").style.display = "none";
-  document.getElementById("unColPicker").style.display = "none";
-  unRows=[]; unHeaders=[];
-
-  if (file.name.toLowerCase().endsWith(".pdf")) {
+async function handleUnFile(input){
+  const file=input.files[0];if(!file)return;
+  document.getElementById("unFileName").textContent=file.name;
+  document.getElementById("unSuccess").style.display="none";
+  document.getElementById("unPdfPreview").innerHTML="";
+  document.getElementById("unColPicker").style.display="none";
+  unRows=[];unHeaders=[];
+  if(file.name.toLowerCase().endsWith(".pdf")){
     setStatus("Extracting text from PDF...");
-    try {
-      const lines = await readPdf(file);
-      showPdfPreview("unPdfPreview", lines, (selected)=>{
-        unRows = selected.map(l=>({[unCol]:l}));
-        unHeaders = [unCol];
-        showUnSuccess();
-        checkReady();
-      }, ()=>{ document.getElementById("unFileName").textContent="No reference file selected"; });
-    } catch { setStatus("Failed to extract PDF text. It may be a scanned image."); }
-  } else {
-    readStructured(file, rows=>{
-      const headers = rows.length ? Object.keys(rows[0]) : [];
-      unHeaders = headers;
-      const col = headers.includes("FullName") ? "FullName" : headers[0];
-      unCol = col;
-      applyUnRows(rows, col);
-    });
-  }
+    try{const lines=await readPdf(file);showPdfPreview("unPdfPreview",lines,selected=>{unRows=selected.map(l=>({[unCol]:l}));unHeaders=[unCol];showUnSuccess();checkReady();},()=>{document.getElementById("unFileName").textContent="No reference file selected";});}
+    catch{setStatus("Failed to extract PDF text. It may be a scanned image.");}
+  }else{readStructured(file,rows=>{const headers=rows.length?Object.keys(rows[0]):[];unHeaders=headers;const col=headers.includes("FullName")?"FullName":headers[0];unCol=col;applyUnRows(rows,col);});}
   input.value="";
 }
 
-function applyUnRows(rows, col) {
-  unCol = col;
-  const seen = new Set();
-  unRows = rows.filter(r=>{ const n=String(r[col]||"").trim().toLowerCase(); if(!n||seen.has(n)) return false; seen.add(n); return true; });
-  showUnSuccess();
-  renderUnColPicker(unHeaders, col);
-  checkReady();
+function applyUnRows(rows,col){
+  unCol=col;const seen=new Set();
+  unRows=rows.filter(r=>{const n=String(r[col]||"").trim().toLowerCase();if(!n||seen.has(n))return false;seen.add(n);return true;});
+  showUnSuccess();renderUnColPicker(unHeaders,col);checkReady();
 }
 
-function showUnSuccess() {
-  const el = document.getElementById("unSuccess");
-  el.textContent = `✅ ${unRows.length.toLocaleString()} records loaded`;
-  el.style.display = "block";
-  setStatus("Ready to process files");
-}
+function showUnSuccess(){const el=document.getElementById("unSuccess");el.textContent=`✅ ${unRows.length.toLocaleString()} records loaded`;el.style.display="block";setStatus("Ready to process files");}
 
-function renderUnColPicker(headers, selected) {
-  if (headers.length <= 1) { document.getElementById("unColPicker").style.display="none"; return; }
-  document.getElementById("unColLabel").textContent = `Name column — currently: "${selected}"`;
-  const container = document.getElementById("unColBtns");
-  container.innerHTML="";
-  headers.forEach(h=>{
-    const b=document.createElement("button");
-    b.className="col-btn"+(h===selected?" active":"");
-    b.textContent=(h===selected?"✓ ":"")+h;
-    b.onclick=()=>applyUnRows(unRows.length ? unRows.map(r=>({...r})) : [], h);
-    container.appendChild(b);
-  });
+function renderUnColPicker(headers,selected){
+  if(headers.length<=1){document.getElementById("unColPicker").style.display="none";return;}
+  document.getElementById("unColLabel").textContent=`Name column — currently: "${selected}"`;
+  const c=document.getElementById("unColBtns");c.innerHTML="";
+  headers.forEach(h=>{const b=document.createElement("button");b.className="col-btn"+(h===selected?" active":"");b.textContent=(h===selected?"✓ ":"")+h;b.onclick=()=>applyUnRows(unRows,h);c.appendChild(b);});
   document.getElementById("unColPicker").style.display="block";
 }
 
-// ─── Client File ──────────────────────────────────────────
-async function handleClientFile(input) {
-  const file = input.files[0]; if (!file) return;
-  document.getElementById("clientFileName").textContent = file.name;
+async function handleClientFile(input){
+  const file=input.files[0];if(!file)return;
+  document.getElementById("clientFileName").textContent=file.name;
   document.getElementById("clientSuccess").style.display="none";
-  document.getElementById("clientPdfPreview").style.display="none";
+  document.getElementById("clientPdfPreview").innerHTML="";
   document.getElementById("clientForcePick").style.display="none";
   document.getElementById("clientColPicker").style.display="none";
-  clientRows=[]; clientHeaders=[]; clientCol=null; clientPdfNames=[];
-
-  if (file.name.toLowerCase().endsWith(".pdf")) {
+  clientRows=[];clientHeaders=[];clientCol=null;clientPdfNames=[];
+  if(file.name.toLowerCase().endsWith(".pdf")){
     setStatus("Extracting text from PDF...");
-    try {
-      const lines = await readPdf(file);
-      showPdfPreview("clientPdfPreview", lines, (selected)=>{
-        clientPdfNames = selected;
-        const el=document.getElementById("clientSuccess");
-        el.textContent=`✅ ${selected.length} names loaded from PDF`;
-        el.style.display="block";
-        setStatus("Ready to process files");
-        checkReady();
-      }, ()=>{ document.getElementById("clientFileName").textContent="No file selected"; });
-    } catch { setStatus("Failed to extract PDF text. It may be a scanned image."); }
-  } else {
-    readStructured(file, rows=>{
-      clientRows = rows;
-      clientHeaders = rows.length ? Object.keys(rows[0]) : [];
-      showForcePick();
-    });
-  }
+    try{const lines=await readPdf(file);showPdfPreview("clientPdfPreview",lines,selected=>{clientPdfNames=selected;const el=document.getElementById("clientSuccess");el.textContent=`✅ ${selected.length} names loaded from PDF`;el.style.display="block";setStatus("Ready to process files");checkReady();},()=>{document.getElementById("clientFileName").textContent="No file selected";});}
+    catch{setStatus("Failed to extract PDF text. It may be a scanned image.");}
+  }else{readStructured(file,rows=>{clientRows=rows;clientHeaders=rows.length?Object.keys(rows[0]):[];showForcePick();});}
   input.value="";
 }
 
-function showForcePick() {
-  const container = document.getElementById("clientForcePickBtns");
-  container.innerHTML="";
-  clientHeaders.forEach(h=>{
-    const b=document.createElement("button");
-    b.className="col-btn"; b.textContent=h;
-    b.onclick=()=>applyClientCol(h);
-    container.appendChild(b);
-  });
+function showForcePick(){
+  const c=document.getElementById("clientForcePickBtns");c.innerHTML="";
+  clientHeaders.forEach(h=>{const b=document.createElement("button");b.className="col-btn";b.textContent=h;b.onclick=()=>applyClientCol(h);c.appendChild(b);});
   document.getElementById("clientForcePick").style.display="block";
 }
 
-function applyClientCol(col) {
-  clientCol = col;
-  document.getElementById("clientForcePick").style.display="none";
-  const el=document.getElementById("clientSuccess");
-  el.textContent=`✅ ${clientRows.length} records loaded (column: "${col}")`;
-  el.style.display="block";
-  renderClientColPicker(clientHeaders, col);
-  setStatus("Ready to process files");
-  checkReady();
+function applyClientCol(col){
+  clientCol=col;document.getElementById("clientForcePick").style.display="none";
+  const el=document.getElementById("clientSuccess");el.textContent=`✅ ${clientRows.length} records loaded (column: "${col}")`;el.style.display="block";
+  renderClientColPicker(clientHeaders,col);setStatus("Ready to process files");checkReady();
 }
 
-function renderClientColPicker(headers, selected) {
+function renderClientColPicker(headers,selected){
   document.getElementById("clientColLabel").textContent=`Name column — currently: "${selected}"`;
-  const container=document.getElementById("clientColBtns");
-  container.innerHTML="";
-  headers.forEach(h=>{
-    const b=document.createElement("button");
-    b.className="col-btn"+(h===selected?" active":"");
-    b.textContent=(h===selected?"✓ ":"")+h;
-    b.onclick=()=>applyClientCol(h);
-    container.appendChild(b);
-  });
+  const c=document.getElementById("clientColBtns");c.innerHTML="";
+  headers.forEach(h=>{const b=document.createElement("button");b.className="col-btn"+(h===selected?" active":"");b.textContent=(h===selected?"✓ ":"")+h;b.onclick=()=>applyClientCol(h);c.appendChild(b);});
   document.getElementById("clientColPicker").style.display="block";
 }
 
-// ─── PDF Preview ──────────────────────────────────────────
-function showPdfPreview(containerId, lines, onConfirm, onCancel) {
-  const container = document.getElementById(containerId);
-  const selected = new Set(lines.map((_,i)=>i));
-
-  const render = () => {
-    container.innerHTML=`
-      <div class="pdf-preview">
-        <h3>PDF Preview — Select lines that are names</h3>
-        <p>${selected.size} of ${lines.length} lines selected. Uncheck any lines that are not names.</p>
-        <div class="pdf-actions">
-          <button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfSelectAll_${containerId}()">Select All</button>
-          <button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfClearAll_${containerId}()">Clear All</button>
-        </div>
-        <div class="pdf-lines" id="${containerId}_lines"></div>
-        <div class="pdf-confirm-row">
-          <button class="btn btn-green" style="font-size:13px;padding:8px 18px" ${selected.size===0?"disabled":""} onclick="pdfConfirm_${containerId}()">Use Selected Lines (${selected.size})</button>
-          <button class="btn-cancel" onclick="pdfCancel_${containerId}()">Cancel</button>
-        </div>
-      </div>`;
-    const linesDiv = document.getElementById(`${containerId}_lines`);
-    lines.forEach((line,i)=>{
-      const div=document.createElement("div");
-      div.className="pdf-line"+(selected.has(i)?" checked":"");
-      div.innerHTML=`<div class="pdf-checkbox ${selected.has(i)?"on":""}">${selected.has(i)?"✓":""}</div><span class="pdf-line-text">${line}</span>`;
-      div.onclick=()=>{ selected.has(i)?selected.delete(i):selected.add(i); render(); };
-      linesDiv.appendChild(div);
-    });
+function showPdfPreview(containerId,lines,onConfirm,onCancel){
+  const container=document.getElementById(containerId);
+  const selected=new Set(lines.map((_,i)=>i));
+  const render=()=>{
+    container.innerHTML=`<div class="pdf-preview"><h3>PDF Preview — Select lines that are names</h3><p>${selected.size} of ${lines.length} lines selected.</p><div class="pdf-actions"><button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfAll_${containerId}()">Select All</button><button class="btn" style="font-size:12px;padding:4px 12px" onclick="pdfNone_${containerId}()">Clear All</button></div><div class="pdf-lines" id="${containerId}_lines"></div><div class="pdf-confirm-row"><button class="btn btn-green" style="font-size:13px;padding:8px 18px" ${selected.size===0?"disabled":""} onclick="pdfOk_${containerId}()">Use Selected Lines (${selected.size})</button><button class="btn-cancel" onclick="pdfCancel_${containerId}()">Cancel</button></div></div>`;
+    const ld=document.getElementById(`${containerId}_lines`);
+    lines.forEach((line,i)=>{const d=document.createElement("div");d.className="pdf-line"+(selected.has(i)?" checked":"");d.innerHTML=`<div class="pdf-checkbox ${selected.has(i)?"on":""}">${selected.has(i)?"✓":""}</div><span class="pdf-line-text">${line}</span>`;d.onclick=()=>{selected.has(i)?selected.delete(i):selected.add(i);render();};ld.appendChild(d);});
   };
-
-  window[`pdfSelectAll_${containerId}`]=()=>{ lines.forEach((_,i)=>selected.add(i)); render(); };
-  window[`pdfClearAll_${containerId}`]=()=>{ selected.clear(); render(); };
-  window[`pdfConfirm_${containerId}`]=()=>{ container.style.display="none"; onConfirm(lines.filter((_,i)=>selected.has(i))); };
-  window[`pdfCancel_${containerId}`]=()=>{ container.style.display="none"; onCancel(); };
-
-  container.style.display="block";
+  window[`pdfAll_${containerId}`]=()=>{lines.forEach((_,i)=>selected.add(i));render();};
+  window[`pdfNone_${containerId}`]=()=>{selected.clear();render();};
+  window[`pdfOk_${containerId}`]=()=>{container.innerHTML="";onConfirm(lines.filter((_,i)=>selected.has(i)));};
+  window[`pdfCancel_${containerId}`]=()=>{container.innerHTML="";onCancel();};
   render();
   setStatus(`PDF loaded — ${lines.length} lines found. Review and confirm below.`);
 }
 
-// ─── Ready check ──────────────────────────────────────────
-function checkReady() {
-  const clientReady = clientPdfNames.length>0 || (clientCol && clientRows.length>0);
-  document.getElementById("compareBtn").disabled = !(unRows.length>0 && clientReady);
+function checkReady(){
+  const clientReady=clientPdfNames.length>0||(clientCol&&clientRows.length>0);
+  document.getElementById("compareBtn").disabled=!(unRows.length>0&&clientReady);
 }
 
-function setStatus(msg) { document.getElementById("statusText").textContent=msg; }
+function setStatus(msg){document.getElementById("statusText").textContent=msg;}
 
-// ─── Screening ────────────────────────────────────────────
-function runScreening() {
-  const threshold = parseInt(document.getElementById("thresholdSlider").value);
+function runScreening(){
+  const threshold=parseInt(document.getElementById("thresholdSlider").value);
   setStatus("Processing files...");
   document.getElementById("compareBtn").disabled=true;
   document.getElementById("downloadBtn").disabled=true;
-
-  let p=0;
-  const interval=setInterval(()=>{ p=Math.min(p+4,90); document.getElementById("progressFill").style.width=p+"%"; },80);
-
+  let p=0;const interval=setInterval(()=>{p=Math.min(p+4,90);document.getElementById("progressFill").style.width=p+"%";},80);
   setTimeout(()=>{
     clearInterval(interval);
-    // Dedupe sanctions
     const sanctionMap=new Map();
-    unRows.forEach(r=>{ const n=String(r[unCol]||"").trim(); if(!n) return; const k=normalizeName(n); if(!sanctionMap.has(k)) sanctionMap.set(k,n); });
+    unRows.forEach(r=>{const n=String(r[unCol]||"").trim();if(!n)return;const k=normalizeName(n);if(!sanctionMap.has(k))sanctionMap.set(k,n);});
     const sanctions=[...sanctionMap.values()];
-
-    // Dedupe clients
     const seenClients=new Set();
-    const names = clientPdfNames.length>0 ? clientPdfNames : clientRows.map(r=>String(r[clientCol]||"").trim()).filter(Boolean);
-    const clients=names.filter(n=>{ const k=normalizeName(n); if(!k||seenClients.has(k)) return false; seenClients.add(k); return true; });
-
-    const high=[], partial=[];
-    clients.forEach(name=>{
-      let best=0, bestName="";
-      sanctions.forEach(sn=>{ const s=matchScore(name,sn); if(s>best){best=s;bestName=sn;} });
-      const entry={clientName:name, matchedName:bestName, score:best};
-      if(best>=threshold) high.push(entry);
-      else if(best>=50) partial.push(entry);
-    });
-
-    high.sort((a,b)=>b.score-a.score);
-    partial.sort((a,b)=>b.score-a.score);
+    const names=clientPdfNames.length>0?clientPdfNames:clientRows.map(r=>String(r[clientCol]||"").trim()).filter(Boolean);
+    const clients=names.filter(n=>{const k=normalizeName(n);if(!k||seenClients.has(k))return false;seenClients.add(k);return true;});
+    const high=[],partial=[];
+    clients.forEach(name=>{let best=0,bestName="";sanctions.forEach(sn=>{const s=matchScore(name,sn);if(s>best){best=s;bestName=sn;}});const e={clientName:name,matchedName:bestName,score:best};if(best>=threshold)high.push(e);else if(best>=50)partial.push(e);});
+    high.sort((a,b)=>b.score-a.score);partial.sort((a,b)=>b.score-a.score);
     screeningResults={high,partial,threshold,totalUN:sanctions.length,totalClients:clients.length};
-
     document.getElementById("progressFill").style.width="100%";
     setStatus(`Completed — ${high.length} high matches, ${partial.length} partial matches`);
     document.getElementById("compareBtn").disabled=false;
@@ -506,53 +342,23 @@ function runScreening() {
   },200);
 }
 
-function riskColor(score, threshold) {
-  return score>=threshold?"#27ae60":score>=70?"#f39c12":"#ff6b6b";
-}
+function riskColor(score,threshold){return score>=threshold?"#27ae60":score>=70?"#f39c12":"#ff6b6b";}
 
-function renderResults({high,partial,threshold,totalUN,totalClients}) {
+function renderResults({high,partial,threshold,totalUN,totalClients}){
   const all=[...high,...partial];
-  let html=`
-    <div class="summary-grid">
-      <div class="summary-box"><div class="summary-num" style="color:#27ae60">${high.length}</div><div class="summary-lbl">High Matches</div></div>
-      <div class="summary-box"><div class="summary-num" style="color:#f39c12">${partial.length}</div><div class="summary-lbl">Partial Matches</div></div>
-      <div class="summary-box"><div class="summary-num" style="color:#fff">${totalUN.toLocaleString()}</div><div class="summary-lbl">UN Records</div></div>
-      <div class="summary-box"><div class="summary-num" style="color:#fff">${totalClients}</div><div class="summary-lbl">Clients Screened</div></div>
-    </div>
-    <div class="results-table-wrap"><table>
-      <thead><tr><th>Type</th><th>Client Name</th><th>Best UN Match</th><th>Score</th></tr></thead>
-      <tbody>`;
-
-  if (!all.length) {
-    html+=`<tr><td colspan="4" class="no-results">No matches found above 50%</td></tr>`;
-  } else {
-    all.forEach(r=>{
-      const isHigh=r.score>=threshold;
-      const color=riskColor(r.score,threshold);
-      html+=`<tr>
-        <td><span class="${isHigh?"badge-high":"badge-partial"}">${isHigh?"✅ HIGH":"🔍 PARTIAL"}</span></td>
-        <td style="font-weight:500">${r.clientName}</td>
-        <td style="color:#333">${r.matchedName}</td>
-        <td><div class="score-bar-wrap">
-          <div class="score-bar-bg"><div class="score-bar-fill" style="width:${r.score}%;background:${color}"></div></div>
-          <span class="score-val" style="color:${color}">${r.score}%</span>
-        </div></td>
-      </tr>`;
-    });
-  }
+  let html=`<div class="summary-grid"><div class="summary-box"><div class="summary-num" style="color:#27ae60">${high.length}</div><div class="summary-lbl">High Matches</div></div><div class="summary-box"><div class="summary-num" style="color:#f39c12">${partial.length}</div><div class="summary-lbl">Partial Matches</div></div><div class="summary-box"><div class="summary-num" style="color:#fff">${totalUN.toLocaleString()}</div><div class="summary-lbl">UN Records</div></div><div class="summary-box"><div class="summary-num" style="color:#fff">${totalClients}</div><div class="summary-lbl">Clients Screened</div></div></div><div class="results-table-wrap"><table><thead><tr><th>Type</th><th>Client Name</th><th>Best UN Match</th><th>Score</th></tr></thead><tbody>`;
+  if(!all.length){html+=`<tr><td colspan="4" class="no-results">No matches found above 50%</td></tr>`;}
+  else{all.forEach(r=>{const isHigh=r.score>=threshold;const color=riskColor(r.score,threshold);html+=`<tr><td><span class="${isHigh?"badge-high":"badge-partial"}">${isHigh?"✅ HIGH":"🔍 PARTIAL"}</span></td><td style="font-weight:500">${r.clientName}</td><td style="color:#333">${r.matchedName}</td><td><div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${r.score}%;background:${color}"></div></div><span class="score-val" style="color:${color}">${r.score}%</span></div></td></tr>`;});}
   html+=`</tbody></table></div>`;
   document.getElementById("resultsArea").innerHTML=html;
 }
 
-// ─── Download XLSX ────────────────────────────────────────
-function downloadXLSX() {
-  if (!screeningResults) return;
+function downloadXLSX(){
+  if(!screeningResults)return;
   const rows=[["Type","Client Name","UN List Name","Score (%)"]];
   screeningResults.high.forEach(r=>rows.push(["High Match",r.clientName,r.matchedName,r.score]));
   screeningResults.partial.forEach(r=>rows.push(["Partial Match",r.clientName,r.matchedName,r.score]));
-  const ws=XLSX.utils.aoa_to_sheet(rows);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Screening Results");
+  const ws=XLSX.utils.aoa_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Screening Results");
   XLSX.writeFile(wb,`sanction_screening_results_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 </script>
