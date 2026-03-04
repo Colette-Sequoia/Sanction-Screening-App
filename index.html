@@ -21,6 +21,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:Arial,sans-serif;background:#444647;color:#fff;padding:20px;min-height:100vh;}
+  body.modal-open{overflow:hidden;}
   .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
   .header{background:#05263B;padding:20px;text-align:center;border-bottom:2px solid #073855;}
   .header h1{font-size:28px;font-weight:bold;color:#fff;}
@@ -216,7 +217,11 @@ var screeningResults = null;
 // ── Disclaimer ─────────────────────────────────────────
 function acceptDisclaimer() {
   document.getElementById("disclaimerModal").style.display = "none";
+  document.body.classList.remove("modal-open");
 }
+
+// Lock background scroll on load
+document.body.classList.add("modal-open");
 
 // ── Matching ───────────────────────────────────────────
 var TITLE_RE = /^(mr\.?\s+|mrs\.?\s+|ms\.?\s+|miss\.?\s+|dr\.?\s+|prof\.?\s+|sir\.?\s+|madam\.?\s+|mx\.?\s+|rev\.?\s+|hon\.?\s+|lord\.?\s+|lady\.?\s+)/i;
