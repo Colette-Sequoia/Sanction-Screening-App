@@ -20,8 +20,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:Arial,sans-serif;background:#444647;color:#fff;padding:20px;min-height:100vh;}
-  .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+  body{font-family:Arial,sans-serif;background:#444647;color:#fff;padding:0;min-height:100vh;}
+  .wrap{max-width:1000px;margin:0 auto;background:#05263B;border-radius:0;overflow:hidden;display:flex;flex-direction:column;}
   .header{background:#05263B;padding:20px;text-align:center;border-bottom:2px solid #073855;}
   .header h1{font-size:28px;font-weight:bold;color:#fff;}
   .main{padding:20px;flex:1;}
@@ -103,8 +103,8 @@
 </head>
 <body>
 
-<!-- Disclaimer Modal -->
-<div class="modal-overlay" id="disclaimerModal">
+<!-- Disclaimer -->
+<div id="disclaimerModal">
   <div class="modal">
     <div class="modal-header">
       <h2>Disclaimer &amp; Terms of Use</h2>
@@ -130,8 +130,8 @@
 </div>
 
 <!-- App -->
-<div id="appWrap" style="display:none;">
-<div class="wrap"> class="wrap">
+<div id="appWrap" style="display:none;padding:20px;">
+<div class="wrap"> 
   <div class="header"><h1>Sanction Screening</h1></div>
   <div class="main">
 
