@@ -130,6 +130,7 @@
 </div>
 
 <!-- App -->
+<div id="appWrap" style="display:none;">
 <div class="wrap"> class="wrap">
   <div class="header"><h1>Sanction Screening</h1></div>
   <div class="main">
@@ -205,6 +206,7 @@
   </div>
   <div class="footer-bar">Sequoia Investment Solutions is an authorised Financial Services Provider, FSP No.: 49393.</div>
 </div>
+</div>
 
 <script>
 // ── State ──────────────────────────────────────────────
@@ -216,6 +218,7 @@ var screeningResults = null;
 // ── Disclaimer ─────────────────────────────────────────
 function acceptDisclaimer() {
   document.getElementById("disclaimerModal").style.display = "none";
+  document.getElementById("appWrap").style.display = "block";
 }
 
 // ── Matching ───────────────────────────────────────────
