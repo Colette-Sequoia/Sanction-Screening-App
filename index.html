@@ -104,13 +104,12 @@
 <body>
 
 <!-- Disclaimer -->
-<div id="disclaimerModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Disclaimer &amp; Terms of Use</h2>
-      <p>Sequoia Investment Solutions – Sanctions Screening Application</p>
-    </div>
-    <div class="modal-body">
+<div id="disclaimerModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#05263B;z-index:9999;display:flex;flex-direction:column;overflow:hidden;">
+  <div style="background:#073855;padding:18px 24px;border-bottom:2px solid #05263B;flex-shrink:0;">
+    <h2 style="font-size:20px;font-weight:bold;color:#fff;margin-bottom:4px;">Disclaimer &amp; Terms of Use</h2>
+    <p style="font-size:12px;color:#b0c4d8;">Sequoia Investment Solutions – Sanctions Screening Application</p>
+  </div>
+  <div style="overflow-y:auto;padding:20px 24px;flex:1;-webkit-overflow-scrolling:touch;">
       <div class="modal-section"><h3>1. General Disclaimer</h3><p>This Sanctions Screening Application is provided by Sequoia Investment Solutions strictly as an internal decision-support tool. It is designed to assist compliance personnel in identifying potential matches between client names and the UN Consolidated Sanctions List. It is not intended to serve as a definitive compliance determination, legal advice, or a substitute for professional judgment.</p></div>
       <div class="modal-section"><h3>2. No Warranty on Results</h3><p>Sequoia Investment Solutions makes no representations, warranties, or guarantees regarding the accuracy, completeness, or reliability of the results produced by this App. The fuzzy-matching algorithm is probabilistic and may produce false positives or false negatives. Sequoia Investment Solutions accepts no responsibility or liability for any errors, omissions, or inaccuracies in the screening results.</p></div>
       <div class="modal-section"><h3>3. No Legal or Compliance Advice</h3><p>Nothing produced by this App constitutes legal advice or a formal compliance opinion. All results must be reviewed and verified by a suitably qualified compliance officer or legal professional, and cross-referenced against the most current official sanctions lists. Users are solely responsible for ensuring compliance with all applicable laws and regulations, including those administered by the UN Security Council, FATF, FIC, and SARB.</p></div>
@@ -122,10 +121,10 @@
       <div class="modal-foot-text">Sequoia Investment Solutions is an authorised Financial Services Provider, FSP No.: 49393.</div>
       <div class="modal-foot-text" style="margin-top:6px">Last Updated: February 2026 &nbsp;·&nbsp; © 2026 Sequoia Investment Solutions. All rights reserved.</div>
     </div>
-    <div class="modal-footer">
-      <p>By clicking <strong>"I Acknowledge &amp; Accept"</strong> below, you confirm that you have read, understood, and agree to the terms of this disclaimer.</p>
-      <button class="btn btn-green" style="width:100%;padding:12px 25px;font-size:14px;" onclick="acceptDisclaimer()">I Acknowledge &amp; Accept</button>
-    </div>
+  </div>
+  <div style="background:#073855;padding:16px 24px;border-top:2px solid #05263B;flex-shrink:0;">
+    <p style="font-size:12px;color:#b0c4d8;margin-bottom:12px;">By clicking <strong>"I Acknowledge &amp; Accept"</strong> below, you confirm that you have read, understood, and agree to the terms of this disclaimer.</p>
+    <button class="btn btn-green" style="width:100%;padding:12px 25px;font-size:14px;" onclick="acceptDisclaimer()">I Acknowledge &amp; Accept</button>
   </div>
 </div>
 
